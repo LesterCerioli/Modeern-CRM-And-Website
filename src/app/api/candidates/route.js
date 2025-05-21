@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { CandidateService } from '@/services/candidateService';
-import { CandidateDTO } from '@/domain/dtos/candidateDTO';
+import candidateService from '../../../../services/candidateService';
 
 const candidateService = new CandidateService();
 

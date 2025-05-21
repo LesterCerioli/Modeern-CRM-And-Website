@@ -13,6 +13,8 @@
     "@types/node": "20.4.8",
     "@types/react": "18.2.18",
     "@types/react-dom": "18.2.7",
+    "@vercel/analytics": "^1.5.0",
+    "@vercel/speed-insights": "^1.2.0",
     "bootstrap": "^5.3.1",
     "dotenv": "^16.4.7",
     "eslint": "8.46.0",
@@ -27,11 +29,10 @@
     "react-modal": "^3.16.1",
     "react-responsive-carousel": "^3.2.23",
     "react-step-progress-bar": "^1.0.3",
+    "sharp": "^0.34.2",
     "styled-components": "^6.0.7",
     "typescript": "5.1.6",
-    "zod": "^3.22.2",
-    "@vercel/speed-insights": "^1.2.0",
-    "@vercel/analytics": "^1.5.0"
+    "zod": "^3.22.2"
   },
   "devDependencies": {
     "@types/react-modal": "^3.16.0"
