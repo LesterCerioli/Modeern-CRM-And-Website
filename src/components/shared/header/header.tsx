@@ -31,6 +31,7 @@ import { CgClose } from 'react-icons/cg';
               <S.Link href="/">Home</S.Link>
               <S.Link href="/services">Services</S.Link>
               <S.Link href="portfolio">Portfolio</S.Link>
+              <S.Link href="jobs">Jobs</S.Link>
               <S.Link href="contact">Contact</S.Link>
               <S.Link href="aboutUs">About Us</S.Link>
               <S.Link href="blog">Blog</S.Link>
