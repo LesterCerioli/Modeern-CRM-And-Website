@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { CandidateService } from '@/services/candidateService';
+
 import candidateService from '../../../../services/candidateService';
 
 const candidateService = new CandidateService();
