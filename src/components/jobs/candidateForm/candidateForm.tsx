@@ -123,6 +123,7 @@ export default function Form() {
     },
   });
 
+
   const countryValue = useWatch({
     control,
     name: "dataClient.country",
@@ -232,29 +233,22 @@ export default function Form() {
           />
           {errors.dataClient?.linkedinUrl && <p className="error">{errors.dataClient.linkedinUrl.message}</p>}
 
-          <button type="submit" disabled={isSending}>
-            {isSending ? "Sending..." : "Submit"}
-          </button>
+
         </S.Data>
+        <S.FirstButton>
+          <label>
+            <button type="submit" className={isSending ? "sending" : ""} disabled={isSending}>
+              {isSending ? "Sending..." : "Send"}
+            </button>
+          </label>
+        </S.FirstButton>
       </form>
 
-      <Modal
-        isOpen={modalIsOpen}
-        onRequestClose={closeModal}
-        contentLabel="Submission Result"
-        ariaHideApp={false}
-        style={{
-          content: {
-            maxWidth: "400px",
-            margin: "auto",
-            padding: "2rem",
-            textAlign: "center",
-            borderRadius: "12px",
-          },
-        }}
-      >
-        <GoIssueClosed size={48} color="green" />
-        <h2>{formMessage}</h2>
+      <Modal isOpen={modalIsOpen} onRequestClose={closeModal} contentLabel="Registration Sent">
+        <p>{formMessage}</p>
+        <S.Button onClick={closeModal}>
+          <GoIssueClosed />
+        </S.Button>
       </Modal>
     </S.Container>
   );
