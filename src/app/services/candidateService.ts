@@ -1,68 +1,62 @@
-
-import { CandidateContractService } from "./candidateContractService";
 import { CandidateDTO } from "@/domain/dtos/candidateDTO";
-import { saveDataCandidates } from "./saveDataCandidates";
-
-import fs from "fs";
-import path from "path";
-import dotenv from "dotenv";
-
-dotenv.config();
-
-const candidatesFilePath = process.env.CANDIDATES_DATA_PATH ?? "";
-
-if (!candidatesFilePath) {
-  throw new Error("CANDIDATES_DATA_PATH is not defined in environment variables.");
-}
 
 export class CandidateService implements CandidateContractService {
+
   /**
-   * Asynchronously creates a new candidate by saving to a JSON file in background.
+   * Creates a new candidate in the database.
    * @param candidate - Candidate data to be inserted.
-   * @returns The input CandidateDTO.
+   * @returns Promise resolving to the created CandidateDTO.
    */
   async create(candidate: CandidateDTO): Promise<CandidateDTO> {
-    
-    setImmediate(() => {
-      try {
-        console.log(`[CandidateService] Saving candidate ${candidate.email}...`);
-        saveDataCandidates(candidate);
-        console.log(`[CandidateService] Candidate ${candidate.email} saved successfully.`);
-      } catch (error) {
-        console.error(`[CandidateService] Error saving candidate ${candidate.email}:`, error);
-      }
-    });
+    const query = `
+      INSERT INTO "Candidate" (id, "firstName", "lastName", email, telephone, city, state, country, cpf, "createdAt", "updatedAt")
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+      RETURNING *;
+    `;
 
-    return candidate;
+    const values = [
+      candidate.id,
+      candidate.firstName,
+      candidate.lastName,
+      candidate.email,
+      candidate.telephone,
+      candidate.city,
+      candidate.state,
+      candidate.country,
+      candidate.passportId
+    ];
+
+    try {
+      const { rows } = await pool.query(query, values);
+      if (!rows.length) throw new Error("Failed to create candidate");
+
+      return rows[0];
+    } catch (error) {
+      console.error("Database Error (Create Candidate):", error);
+      throw new Error("Database error while creating candidate.");
+    }
   }
 
   /**
-   * Finds a candidate by email by reading from the JSON file.
+   * Finds a candidate by email.
    * @param email - Candidate email.
    * @returns Promise resolving to CandidateDTO.
+   * @throws Error if no candidate is found.
    */
   async findByEmail(email: string): Promise<CandidateDTO> {
+    const query = `SELECT * FROM "Candidate" WHERE email = $1;`;
+
     try {
-      if (!fs.existsSync(candidatesFilePath)) {
-        console.warn("[CandidateService] Candidates file does not exist.");
-        throw new Error("Candidates file not found.");
-      }
+      const { rows } = await pool.query(query, [email]);
+      if (!rows.length) throw new Error("Candidate not found");
 
-      const fileContent = fs.readFileSync(candidatesFilePath, "utf8");
-      const candidates: CandidateDTO[] = fileContent ? JSON.parse(fileContent) : [];
-
-      const candidate = candidates.find((c) => c.email === email);
-
-      if (!candidate) {
-        console.warn(`[CandidateService] Candidate not found for email: ${email}`);
-        throw new Error("Candidate not found.");
-      }
-
-      console.log(`[CandidateService] Candidate ${email} found.`);
-      return candidate;
+      return rows[0];
     } catch (error) {
-      console.error(`[CandidateService] Error reading candidate for ${email}:`, error);
-      throw new Error("Error retrieving candidate data.");
+      console.error("Database Error (Find by Email):", error);
+      throw new Error("Database error while retrieving candidate by email.");
     }
   }
+
+
+  
 }

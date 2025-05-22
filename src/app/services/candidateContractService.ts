@@ -2,6 +2,7 @@ import { CandidateDTO } from "@/domain/dtos/candidateDTO";
 
 
 export interface CandidateContractService {
+
   /**
    * Creates a new candidate.
    * @param candidate - Candidate data transfer object (DTO).
@@ -16,4 +17,7 @@ export interface CandidateContractService {
    * @throws Error if the candidate is not found.
    */
   findByEmail(email: string): Promise<CandidateDTO>;
+
+  
+
 }

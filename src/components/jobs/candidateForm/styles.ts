@@ -239,13 +239,7 @@ border: none;
 
 `;
 
-export const hintStyle = `
-  .hint {
-    font-size: 12px;
-    color: #555;
-    margin: 4px 0 8px;
-  }
-`;
+
 
 export const Button = styled.button`
 width:50px;
