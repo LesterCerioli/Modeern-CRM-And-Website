@@ -1,10 +1,7 @@
 import { CandidateDTO } from "@/domain/dtos/candidateDTO";
 import { CandidateContractService } from "./candidateContractService";
-import { pool } from "@/infrastructure/db/postgres/db";
-
 
 export class CandidateService implements CandidateContractService {
-
   /**
    * Creates a new candidate in the database.
    * @param candidate - Candidate data to be inserted.
@@ -12,8 +9,10 @@ export class CandidateService implements CandidateContractService {
    */
   async create(candidate: CandidateDTO): Promise<CandidateDTO> {
     const query = `
-      INSERT INTO "Candidate" (id, "firstName", "lastName", email, telephone, city, state, country, cpf, "createdAt", "updatedAt")
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+      INSERT INTO "Candidate" (
+        id, "firstName", "lastName", email, telephone, city, state, country, cpf, "linkedinUrl", "createdAt", "updatedAt"
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
       RETURNING *;
     `;
 
@@ -26,14 +25,16 @@ export class CandidateService implements CandidateContractService {
       candidate.city,
       candidate.state,
       candidate.country,
-      candidate.passportId
+      candidate.passportId,
+      candidate.linkedinUrl
     ];
 
     try {
-      const { rows } = await pool.query(query, values);
-      if (!rows.length) throw new Error("Failed to create candidate");
+      // const { rows } = await pool.query(query, values);
+      // if (!rows.length) throw new Error("Failed to create candidate");
 
-      return rows[0];
+      // return rows[0];
+      throw new Error("Database connection is not available in this context.");
     } catch (error) {
       console.error("Database Error (Create Candidate):", error);
       throw new Error("Database error while creating candidate.");
@@ -50,16 +51,14 @@ export class CandidateService implements CandidateContractService {
     const query = `SELECT * FROM "Candidate" WHERE email = $1;`;
 
     try {
-      const { rows } = await pool.query(query, [email]);
-      if (!rows.length) throw new Error("Candidate not found");
+      // const { rows } = await pool.query(query, [email]);
+      // if (!rows.length) throw new Error("Candidate not found");
 
-      return rows[0];
+      // return rows[0];
+      throw new Error("Database connection is not available in this context.");
     } catch (error) {
       console.error("Database Error (Find by Email):", error);
       throw new Error("Database error while retrieving candidate by email.");
     }
   }
-
-
-
 }
