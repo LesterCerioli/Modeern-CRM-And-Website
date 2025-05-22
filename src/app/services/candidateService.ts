@@ -1,5 +1,7 @@
 import { CandidateDTO } from "@/domain/dtos/candidateDTO";
 import { CandidateContractService } from "./candidateContractService";
+import { pool } from "@/infrastructure/db/postgres/db";
+
 
 export class CandidateService implements CandidateContractService {
 
