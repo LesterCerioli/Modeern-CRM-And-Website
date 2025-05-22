@@ -1,6 +1,6 @@
+import CandidateService from "@/app/services/candidateService";
 
 
-import CandidateService from "@/services/candidateService";
 
 const candidateService = new CandidateService();
 
