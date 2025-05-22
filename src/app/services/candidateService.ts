@@ -1,4 +1,5 @@
 import { CandidateDTO } from "@/domain/dtos/candidateDTO";
+import { CandidateContractService } from "./candidateContractService";
 
 export class CandidateService implements CandidateContractService {
 
@@ -58,5 +59,5 @@ export class CandidateService implements CandidateContractService {
   }
 
 
-  
+
 }
