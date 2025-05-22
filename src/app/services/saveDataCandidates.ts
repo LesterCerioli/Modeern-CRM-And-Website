@@ -30,7 +30,7 @@ export function saveDataCandidates(data: any) {
 
         console.log("Candidate saved successfully!");
     } catch (error) {
-        console.error("Error saving candidate.:", error);
-        throw new Error("Failling saving candidate data.");
+        console.error("Error candidate saving:", error);
+        throw new Error("Failed saving process.");
     }
 }
