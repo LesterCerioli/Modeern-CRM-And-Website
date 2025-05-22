@@ -1,5 +1,5 @@
-import CandidateService from "@/app/services/candidateService";
-
+import { CandidateService } from "@/services/candidateService";
+import { v4 as uuidv4 } from 'uuid';
 
 
 const candidateService = new CandidateService();
