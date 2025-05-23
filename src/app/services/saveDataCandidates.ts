@@ -28,9 +28,9 @@ export function saveDataCandidates(data: any) {
         candidates.push(data);
         fs.writeFileSync(candidatesFilePath, JSON.stringify(candidates, null, 2), "utf8");
 
-        console.log("Candidate saved successfully!");
+        console.log("Candidato salvo com sucesso!");
     } catch (error) {
-        console.error("Error candidate saving:", error);
-        throw new Error("Failed saving process.");
+        console.error("Erro ao salvar candidato:", error);
+        throw new Error("Falha ao salvar os dados do candidato.");
     }
 }
