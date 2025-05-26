@@ -39,7 +39,9 @@ export default function Form() {
   const [formMessage, setFormMessage] = useState<string | null>(null);
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://lts-us-website.vercel.app";
-  const API_CANDIDATES = process.env.NEXT_API_CANDIDATES || "/api/candidates";
+  // API_CANDIDATES is not used directly in the fetch URL as per subtask, but kept for other potential uses.
+  const API_CANDIDATES_PATH = process.env.NEXT_API_CANDIDATES || "/api/candidates"; 
+  const CANDIDATES_SUBMISSION_URL = "https://lts-us-website.vercel.app/api/candidates"; // Explicit URL from subtask
 
   useEffect(() => {
     console.log("📢 Form loaded!");
@@ -51,7 +53,9 @@ export default function Form() {
 
   const closeModal = () => {
     setModalIsOpen(false);
-    reset();
+    // Do not reset form message here, it might be an error message we want to keep.
+    // Resetting the form fields is fine.
+    reset(); 
   };
 
   const {
@@ -79,33 +83,84 @@ export default function Form() {
   });
 
   const handleFormSubmit = async (data: FormProps) => {
-    console.log("📢 Sending request...");
-    console.log("📦 Submitted data:", data);
+    console.log("📢 Initiating form submission...");
     setIsSending(true);
+    setFormMessage(null); // Clear previous messages
 
+    let token = null;
+
+    // Step 1: Authenticate
     try {
-      const response = await fetch(`https://lts-us-website.vercel.app/api/candidates`, {
+      console.log(`🔑 Attempting login to ${API_BASE_URL}/api/auth/login`);
+      const loginResponse = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({ username: "admin", password: "password" }),
+      });
+
+      const loginResult = await loginResponse.json();
+      console.log("🔑 Login API response:", loginResult);
+
+      if (!loginResponse.ok) {
+        setFormMessage(loginResult.error || "❌ Authentication failed. Please try again.");
+        setIsSending(false);
+        return;
+      }
+
+      if (!loginResult.token) {
+        setFormMessage("❌ Authentication successful, but no token received.");
+        setIsSending(false);
+        return;
+      }
+      token = loginResult.token;
+      console.log("🔑 Token received.");
+
+    } catch (error) {
+      console.error("🚨 Error during login request:", error);
+      setFormMessage("❌ Error connecting to authentication server. Please check your connection.");
+      setIsSending(false);
+      return;
+    }
+
+    // Step 2: Submit Candidate Data
+    try {
+      console.log(`📦 Submitting candidate data to ${CANDIDATES_SUBMISSION_URL}`);
+      const candidateResponse = await fetch(CANDIDATES_SUBMISSION_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`, // Add Authorization header
+        },
         body: JSON.stringify(data.dataClient),
       });
 
-      const result = await response.json();
-      console.log("📌 API response:", result);
+      const candidateResult = await candidateResponse.json();
+      console.log("📌 Candidate API response:", candidateResult);
 
-      if (response.ok) {
-        openModal();
+      if (candidateResponse.ok) {
         setFormMessage("✅ Your application has been submitted successfully!");
-        reset();
-        setTimeout(() => closeModal(), 2000);
+        openModal(); // Open modal on success
+        reset(); // Reset form fields
+        // setTimeout is not strictly needed here if modal has its own close button.
+        // If auto-close is desired, keep it but ensure closeModal doesn't clear success message.
+        // For now, let user close modal.
       } else {
-        setFormMessage(result.error || "❌ Error submitting application.");
+        // Handle specific errors from candidate API
+        if (candidateResponse.status === 401) {
+             setFormMessage(candidateResult.error || "❌ Authorization failed for candidate submission. Please try re-submitting.");
+        } else if (candidateResult.errors) { // Handle Zod validation errors if any
+            const errorMessages = Object.values(candidateResult.errors).flat().join(", ");
+            setFormMessage(`❌ Error submitting application: ${errorMessages}`);
+        }
+        else {
+            setFormMessage(candidateResult.error || "❌ Error submitting application. Please try again.");
+        }
       }
     } catch (error) {
-      console.error("🚨 Error connecting to server:", error);
-      setFormMessage("❌ Error connecting to server.");
+      console.error("🚨 Error connecting to candidate server:", error);
+      setFormMessage("❌ Error connecting to application server. Please check your connection.");
     } finally {
       setIsSending(false);
     }
@@ -157,12 +212,14 @@ export default function Form() {
             </button>
           </label>
         </S.FirstButton>
+        {formMessage && <p style={{ marginTop: '10px', color: formMessage.startsWith('✅') ? 'green' : 'red' }}>{formMessage}</p>}
       </form>
 
-      <Modal isOpen={modalIsOpen} onRequestClose={closeModal} contentLabel="Submission Confirmation">
+      <Modal isOpen={modalIsOpen} onRequestClose={closeModal} contentLabel="Submission Confirmation" 
+             style={{ content: { top: '50%', left: '50%', right: 'auto', bottom: 'auto', marginRight: '-50%', transform: 'translate(-50%, -50%)', padding: '20px', zIndex: 1000 } }}>
         <p>{formMessage}</p>
-        <S.Button onClick={closeModal}>
-          <GoIssueClosed />
+        <S.Button onClick={closeModal} style={{ marginTop: '10px', cursor: 'pointer' }}> {/* Added some basic styling for visibility */}
+          <GoIssueClosed /> Close
         </S.Button>
       </Modal>
     </S.Container>

@@ -2,11 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { CandidateService } from "@/app/services/candidateService";
 
-
-
-
 const candidateService = new CandidateService();
-
 
 // function isAuthenticated(request) {
 //   const authHeader = request.headers.get('Authorization');
@@ -103,6 +99,7 @@ export async function POST(request) {
       }
     }
 
+    // candidateService.create now saves to JSON, so this is correct.
     await candidateService.create(data);
 
     return NextResponse.json(
@@ -111,12 +108,37 @@ export async function POST(request) {
     );
 
   } catch (error) {
-    if (error.message && error.message.includes('not found')) {
+    console.error("Error in POST /api/candidates:", error); // Added console log for detailed error
+    if (error.message && error.message.includes('not found')) { // This specific check might be less relevant now
       return NextResponse.json({ error: 'Resource not found' }, { status: 404 });
     }
 
     return NextResponse.json(
       { error: 'Internal Server Error', details: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * Handles GET requests to retrieve all candidates.
+ * @param {Request} request - The incoming HTTP request. Not used in this function but part of Next.js API route signature.
+ * @returns {NextResponse} A JSON response containing the list of candidates or an error message.
+ */
+export async function GET(request) {
+  try {
+    // if (!isAuthenticated(request)) {
+    //   return NextResponse.json(
+    //     { error: 'Unauthorized. Missing or invalid token.' },
+    //     { status: 401 }
+    //   );
+    // }
+    const allCandidates = await candidateService.getAll();
+    return NextResponse.json({ candidates: allCandidates }, { status: 200 });
+  } catch (error) {
+    console.error("Error in GET /api/candidates:", error); // Log the error for server-side inspection
+    return NextResponse.json(
+      { error: "Failed to retrieve candidates", details: error.message },
       { status: 500 }
     );
   }
