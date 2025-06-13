@@ -1,6 +1,7 @@
 import { CandidateDTO } from "@/domain/dtos/candidateDTO";
 
 
+
 export interface CandidateContractService {
 
   /**

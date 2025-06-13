@@ -12,21 +12,18 @@ import { GoIssueClosed } from "react-icons/go";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
 
-// Generic Passport ID validation (alphanumeric, length 5 to 20)
-const passportRegex = /^[a-zA-Z0-9]{5,20}$/;
-
 const schemaForm = z.object({
   dataClient: z.object({
     firstName: z.string().min(3, "Please enter your first name"),
     lastName: z.string().min(3, "Please enter your last name"),
     email: z.string().email("Invalid email").min(6, "Please enter your email"),
-    telephone: z.string().min(11, "Please enter a valid phone number"),
-    city: z.string().min(3, "Please enter your city name"),
-    state: z.string().min(2, "Please enter your state name"),
+    telephone: z.string().min(11, "Please enter your phone number"),
+    city: z.string().min(3, "Please enter your city"),
+    state: z.string().min(2, "Please enter your state"),
     country: z.string().min(4, "Please enter your country"),
-    passportId: z.string()
-      .regex(passportRegex, "Invalid passport number (5–20 alphanumeric characters)"),
-    linkedinUrl: z.string().url("Please enter a valid URL")
+    cpf: z.string().min(11, "Please enter your CPF"),
+    linkedinUrl: z.string()
+      .url("Please enter a valid URL")
       .regex(/^https:\/\/www\.linkedin\.com\/in\/[a-zA-Z0-9-]+\/?$/, "Invalid LinkedIn URL. Example: https://www.linkedin.com/in/your-name/"),
   }),
 });
@@ -38,8 +35,8 @@ export default function Form() {
   const [isSending, setIsSending] = useState(false);
   const [formMessage, setFormMessage] = useState<string | null>(null);
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://lts-us-website.vercel.app";
-  const API_CANDIDATES = process.env.NEXT_API_CANDIDATES || "/api/candidates";
+  const NEXT_PUBLIC_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://lts-us-website.vercel.app";
+  const NEXT_API_CANDIDATES = process.env.NEXT_API_CANDIDATES || "/api/candidates";
 
   useEffect(() => {
     console.log("📢 Form loaded!");
@@ -79,7 +76,7 @@ export default function Form() {
 
   const handleFormSubmit = async (data: FormProps) => {
     console.log("📢 Sending request...");
-    console.log("📦 Submitted data:", data);
+    console.log("📦 Data being sent:", data);
     setIsSending(true);
 
     try {
@@ -96,11 +93,15 @@ export default function Form() {
 
       if (response.ok) {
         openModal();
-        setFormMessage("✅ Your application has been submitted successfully!");
+        setFormMessage("✅ Your information was sent successfully!");
         reset();
-        setTimeout(() => closeModal(), 2000);
+
+        // ✅ Automatically close modal after 2 seconds (2000ms)
+        setTimeout(() => {
+          closeModal();
+        }, 2000);
       } else {
-        setFormMessage(result.error || "❌ Error submitting application.");
+        setFormMessage(result.error || "❌ Error submitting form.");
       }
     } catch (error) {
       console.error("🚨 Error connecting to server:", error);
@@ -116,7 +117,7 @@ export default function Form() {
       <Analytics />
       <form onSubmit={handleSubmit(handleFormSubmit)}>
         <S.Title>
-          <h1>Register for our job opportunities</h1>
+          <h1>Register for our opportunities</h1>
           <label className="line"></label>
         </S.Title>
 
@@ -130,7 +131,7 @@ export default function Form() {
           <input {...register("dataClient.email")} type="email" placeholder="Email" required />
           {errors.dataClient?.email && <p style={{ color: "red", fontSize: "10px" }}>{errors.dataClient.email.message}</p>}
 
-          <input {...register("dataClient.telephone")} type="tel" placeholder="Phone" required />
+          <input {...register("dataClient.telephone")} type="tel" placeholder="Phone Number" required />
           {errors.dataClient?.telephone && <p style={{ color: "red", fontSize: "10px" }}>{errors.dataClient.telephone.message}</p>}
 
           <input {...register("dataClient.city")} type="text" placeholder="City" required />
@@ -142,7 +143,7 @@ export default function Form() {
           <input {...register("dataClient.country")} type="text" placeholder="Country" required />
           {errors.dataClient?.country && <p style={{ color: "red", fontSize: "10px" }}>{errors.dataClient.country.message}</p>}
 
-                    <input {...register("dataClient.linkedinUrl")} type="text" placeholder="LinkedIn" required />
+          <input {...register("dataClient.linkedinUrl")} type="text" placeholder="LinkedIn Profile URL" required />
           {errors.dataClient?.linkedinUrl && <p style={{ color: "red", fontSize: "10px" }}>{errors.dataClient.linkedinUrl.message}</p>}
         </S.Data>
 
@@ -155,7 +156,7 @@ export default function Form() {
         </S.FirstButton>
       </form>
 
-      <Modal isOpen={modalIsOpen} onRequestClose={closeModal} contentLabel="Submission Confirmation">
+      <Modal isOpen={modalIsOpen} onRequestClose={closeModal} contentLabel="Registration Complete">
         <p>{formMessage}</p>
         <S.Button onClick={closeModal}>
           <GoIssueClosed />
