@@ -4,7 +4,7 @@ import path from "path";
 
 dotenv.config();
 
-const candidatesFilePath = process.env.CANDIDATES_DATA_PATH ?? ""; 
+const candidatesFilePath = process.env.CANDIDATES_DATA_PATH ?? ""; // Ensures it's never undefined
 
 if (!candidatesFilePath) {
     throw new Error("CANDIDATES_DATA_PATH is not defined in environment variables.");
@@ -28,9 +28,9 @@ export function saveDataCandidates(data: any) {
         candidates.push(data);
         fs.writeFileSync(candidatesFilePath, JSON.stringify(candidates, null, 2), "utf8");
 
-        console.log("Candidate saved successfully!");
+        console.log("Candidato salvo com sucesso!");
     } catch (error) {
-        console.error("Error to save :", error);
-        throw new Error("Failed to save candidate data..");
+        console.error("Erro ao salvar candidato:", error);
+        throw new Error("Falha ao salvar os dados do candidato.");
     }
 }
