@@ -72,7 +72,6 @@ export default function Form() {
         city: "",
         state: "",
         country: "",
-        passportId: "",
         linkedinUrl: "",
       },
     },
@@ -143,10 +142,7 @@ export default function Form() {
           <input {...register("dataClient.country")} type="text" placeholder="Country" required />
           {errors.dataClient?.country && <p style={{ color: "red", fontSize: "10px" }}>{errors.dataClient.country.message}</p>}
 
-          <input {...register("dataClient.passportId")} type="text" placeholder="Passport ID" required />
-          {errors.dataClient?.passportId && <p style={{ color: "red", fontSize: "10px" }}>{errors.dataClient.passportId.message}</p>}
-
-          <input {...register("dataClient.linkedinUrl")} type="text" placeholder="LinkedIn" required />
+                    <input {...register("dataClient.linkedinUrl")} type="text" placeholder="LinkedIn" required />
           {errors.dataClient?.linkedinUrl && <p style={{ color: "red", fontSize: "10px" }}>{errors.dataClient.linkedinUrl.message}</p>}
         </S.Data>
 

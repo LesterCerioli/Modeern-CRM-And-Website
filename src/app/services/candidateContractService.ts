@@ -18,6 +18,5 @@ export interface CandidateContractService {
    */
   findByEmail(email: string): Promise<CandidateDTO>;
 
-  
 
 }

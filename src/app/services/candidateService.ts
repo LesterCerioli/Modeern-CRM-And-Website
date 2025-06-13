@@ -1,64 +1,58 @@
 import { CandidateDTO } from "@/domain/dtos/candidateDTO";
 import { CandidateContractService } from "./candidateContractService";
+import fs from "fs/promises";
+import path from "path";
 
 export class CandidateService implements CandidateContractService {
-  /**
-   * Creates a new candidate in the database.
-   * @param candidate - Candidate data to be inserted.
-   * @returns Promise resolving to the created CandidateDTO.
-   */
-  async create(candidate: CandidateDTO): Promise<CandidateDTO> {
-    const query = `
-      INSERT INTO "Candidate" (
-        id, "firstName", "lastName", email, telephone, city, state, country, cpf, "linkedinUrl", "createdAt", "updatedAt"
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
-      RETURNING *;
-    `;
+  private readonly dataPath = path.join(__dirname, '../../data/candidates.json');
 
-    const values = [
-      candidate.id,
-      candidate.firstName,
-      candidate.lastName,
-      candidate.email,
-      candidate.telephone,
-      candidate.city,
-      candidate.state,
-      candidate.country,
-      candidate.passportId,
-      candidate.linkedinUrl
-    ];
-
+  private async ensureDataFile(): Promise<void> {
     try {
-      // const { rows } = await pool.query(query, values);
-      // if (!rows.length) throw new Error("Failed to create candidate");
-
-      // return rows[0];
-      throw new Error("Database connection is not available in this context.");
-    } catch (error) {
-      console.error("Database Error (Create Candidate):", error);
-      throw new Error("Database error while creating candidate.");
+      await fs.access(this.dataPath);
+    } catch {
+      await fs.mkdir(path.dirname(this.dataPath), { recursive: true });
+      await fs.writeFile(this.dataPath, '[]', 'utf8');
     }
   }
 
-  /**
-   * Finds a candidate by email.
-   * @param email - Candidate email.
-   * @returns Promise resolving to CandidateDTO.
-   * @throws Error if no candidate is found.
-   */
-  async findByEmail(email: string): Promise<CandidateDTO> {
-    const query = `SELECT * FROM "Candidate" WHERE email = $1;`;
+  private async readCandidates(): Promise<CandidateDTO[]> {
+    await this.ensureDataFile();
+    const data = await fs.readFile(this.dataPath, 'utf8');
+    return JSON.parse(data);
+  }
 
-    try {
-      // const { rows } = await pool.query(query, [email]);
-      // if (!rows.length) throw new Error("Candidate not found");
+  private async saveCandidates(candidates: CandidateDTO[]): Promise<void> {
+    await fs.writeFile(this.dataPath, JSON.stringify(candidates, null, 2), 'utf8');
+  }
 
-      // return rows[0];
-      throw new Error("Database connection is not available in this context.");
-    } catch (error) {
-      console.error("Database Error (Find by Email):", error);
-      throw new Error("Database error while retrieving candidate by email.");
+  async create(candidate: CandidateDTO): Promise<CandidateDTO> {
+    const candidates = await this.readCandidates();
+
+    
+    if (candidates.some(c => c.email === candidate.email)) {
+      throw new Error("Candidate with this email already exists");
     }
+
+    const newCandidate = {
+      ...candidate,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    candidates.push(newCandidate);
+    await this.saveCandidates(candidates);
+
+    return newCandidate;
+  }
+
+  async findByEmail(email: string): Promise<CandidateDTO> {
+    const candidates = await this.readCandidates();
+    const candidate = candidates.find(c => c.email === email);
+
+    if (!candidate) {
+      throw new Error("Candidate not found");
+    }
+
+    return candidate;
   }
 }
