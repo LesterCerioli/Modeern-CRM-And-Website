@@ -7,6 +7,5 @@ export interface CandidateDTO {
   city: string,
   state: string,
   country: string,
-  passportId: string,
   linkedinUrl: string;
 }
