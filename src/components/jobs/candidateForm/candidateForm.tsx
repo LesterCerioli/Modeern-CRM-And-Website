@@ -21,7 +21,6 @@ const schemaForm = z.object({
     city: z.string().min(3, "Please enter your city"),
     state: z.string().min(2, "Please enter your state"),
     country: z.string().min(4, "Please enter your country"),
-    cpf: z.string().min(11, "Please enter your CPF"),
     linkedinUrl: z.string()
       .url("Please enter a valid URL")
       .regex(/^https:\/\/www\.linkedin\.com\/in\/[a-zA-Z0-9-]+\/?$/, "Invalid LinkedIn URL. Example: https://www.linkedin.com/in/your-name/"),
@@ -80,7 +79,7 @@ export default function Form() {
     setIsSending(true);
 
     try {
-      const response = await fetch(`https://lts-us-website.vercel.app/api/candidates`, {
+      const response = await fetch(`${NEXT_PUBLIC_API_BASE_URL}${NEXT_API_CANDIDATES}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
