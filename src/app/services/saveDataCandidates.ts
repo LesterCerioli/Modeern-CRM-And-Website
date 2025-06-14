@@ -1,36 +1,52 @@
 import dotenv from "dotenv";
-import fs from "fs";
+import fs from "fs/promises";
 import path from "path";
 
 dotenv.config();
 
-const candidatesFilePath = process.env.CANDIDATES_DATA_PATH ?? ""; // Ensures it's never undefined
+const candidatesFilePath = process.env.CANDIDATES_DATA_PATH || "./tmp/candidates.json";
 
-if (!candidatesFilePath) {
-    throw new Error("CANDIDATES_DATA_PATH is not defined in environment variables.");
+export async function saveDataCandidates(data: any): Promise<void> {
+  try {
+
+    const dirPath = path.dirname(candidatesFilePath);
+    await fs.mkdir(dirPath, { recursive: true }).catch(() => {});
+
+
+    let candidates = [];
+    try {
+      const fileContent = await fs.readFile(candidatesFilePath, "utf8");
+      candidates = JSON.parse(fileContent);
+
+      if (!Array.isArray(candidates)) {
+        console.warn("Existing file content is not an array, creating new array");
+        candidates = [];
+      }
+    } catch (error) {
+
+
+      if (isNodeError(error) && error.code !== 'ENOENT') {
+        console.error("Error reading candidates file:", error);
+        throw new Error("Failed to read existing candidate data");
+      }
+    }
+
+
+    candidates.push(data);
+    await fs.writeFile(
+      candidatesFilePath,
+      JSON.stringify(candidates, null, 2),
+      "utf8"
+    );
+
+    console.log("Candidate data saved successfully");
+  } catch (error) {
+    console.error("Failed to save candidate data:", error);
+    throw new Error("Failed to persist candidate data to JSON file");
+  }
 }
 
-export function saveDataCandidates(data: any) {
-    try {
-        console.log("Saving candidate data:", data);
 
-        const dirPath = path.dirname(candidatesFilePath);
-        if (!fs.existsSync(dirPath)) {
-            fs.mkdirSync(dirPath, { recursive: true });
-        }
-
-        let candidates = [];
-        if (fs.existsSync(candidatesFilePath)) {
-            const fileContent = fs.readFileSync(candidatesFilePath, "utf8");
-            candidates = fileContent ? JSON.parse(fileContent) : [];
-        }
-
-        candidates.push(data);
-        fs.writeFileSync(candidatesFilePath, JSON.stringify(candidates, null, 2), "utf8");
-
-        console.log("Candidato salvo com sucesso!");
-    } catch (error) {
-        console.error("Erro ao salvar candidato:", error);
-        throw new Error("Falha ao salvar os dados do candidato.");
-    }
+function isNodeError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && 'code' in error;
 }

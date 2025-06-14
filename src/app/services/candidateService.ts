@@ -1,68 +1,64 @@
-import fs from "fs/promises";
-import path from "path";
+import { CandidateDTO } from "@/domain/dtos/candidateDTO";
+import { CandidateContractService } from "./candidateContractService";
 
-const CANDIDATES_JSON_PATH = process.env.CANDIDATES_DATA_PATH || "./tmp/candidatesdata.json";
+import { saveDataCandidates } from "@/app/services/saveDataCandidates";
+import { pool } from "@/infrastructure/db/postgres/db";
 
-export class CandidateService {
-  private async ensureDataFile(): Promise<void> {
+export class CandidateService implements CandidateContractService {
+  /**
+   * Saves candidate to both PostgreSQL and JSON in parallel
+   */
+  async create(candidate: CandidateDTO): Promise<CandidateDTO> {
     try {
-      await fs.access(CANDIDATES_JSON_PATH);
-    } catch {
-      await fs.mkdir(path.dirname(CANDIDATES_JSON_PATH), { recursive: true });
-      await fs.writeFile(CANDIDATES_JSON_PATH, "[]", "utf8");
+      // Executa ambas as operações de persistência em paralelo
+      const [dbResult] = await Promise.all([
+        this.saveToDatabase(candidate),
+        this.saveToJsonFile(candidate).catch(e =>
+          console.error("JSON save failed (non-critical):", e)
+        )
+      ]);
+
+      return dbResult;
+    } catch (error) {
+      console.error("Create Candidate Error:", error);
+      throw new Error("Failed to persist candidate data");
     }
   }
 
-  async create(candidate: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    telephone: string;
-    city: string;
-    state: string;
-    country: string;
-    linkedinUrl: string;
-  }): Promise<any> {
-    await this.ensureDataFile();
-    const candidates = await this.readCandidates();
+  private async saveToDatabase(candidate: CandidateDTO): Promise<CandidateDTO> {
+    const query = `
+      INSERT INTO "Candidate"
+        (id, "firstName", "lastName", email, telephone, city, state, country, "linkedinUrl", "createdAt", "updatedAt")
+      VALUES
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+      RETURNING *;
+    `;
 
-    // Validação de e-mail único
-    if (candidates.some(c => c.email === candidate.email)) {
-      throw new Error("Candidate with this email already exists");
-    }
+    const values = [
+      candidate.id,
+      candidate.firstName,
+      candidate.lastName,
+      candidate.email,
+      candidate.telephone,
+      candidate.city,
+      candidate.state,
+      candidate.country,
+      candidate.linkedinUrl
+    ];
 
-    const newCandidate = {
-      ...candidate,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    await this.saveCandidates([...candidates, newCandidate]);
-    return newCandidate;
+    const { rows } = await pool.query(query, values);
+    if (!rows.length) throw new Error("Database failed to return created candidate");
+    return rows[0];
   }
 
-  async findByEmail(email: string): Promise<any> {
-    const candidates = await this.readCandidates();
-    const candidate = candidates.find(c => c.email === email);
-
-    if (!candidate) {
-      throw new Error("Candidate not found");
-    }
-
-    return candidate;
+  private async saveToJsonFile(candidate: CandidateDTO): Promise<void> {
+    return saveDataCandidates(candidate);
   }
 
-  private async readCandidates(): Promise<any[]> {
-    const data = await fs.readFile(CANDIDATES_JSON_PATH, "utf8");
-    return JSON.parse(data);
-  }
-
-  private async saveCandidates(candidates: any[]): Promise<void> {
-    await fs.writeFile(
-      CANDIDATES_JSON_PATH,
-      JSON.stringify(candidates, null, 2),
-      "utf8"
-    );
+  async findByEmail(email: string): Promise<CandidateDTO> {
+    const query = `SELECT * FROM "Candidate" WHERE email = $1;`;
+    const { rows } = await pool.query(query, [email]);
+    if (!rows.length) throw new Error("Candidate not found");
+    return rows[0];
   }
 }
