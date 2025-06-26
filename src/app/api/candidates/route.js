@@ -1,4 +1,4 @@
-import { CandidateService } from '@/services/CandidateService';
+import { CandidateService } from './services/candidateService';
 
 /**
  * Validação de URL do LinkedIn
