@@ -2,9 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import * as S from "./styles";
-import { MdEmail } from "react-icons/md";
-import { BsTelephoneFill } from "react-icons/bs";
-import { FieldError, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Modal from "react-modal";
@@ -14,17 +12,17 @@ import { Analytics } from "@vercel/analytics/react";
 
 const schemaForm = z.object({
   dataClient: z.object({
-    firstName: z.string().min(3, "Please enter your first name"),
+    firstName: z.string().min(3, "Please enter your first name "),
     lastName: z.string().min(3, "Please enter your last name"),
-    email: z.string().email("Invalid email").min(6, "Please enter your email"),
+    email: z.string().email("E-mail inválido").min(6, "Invalid email"),
     telephone: z.string().min(11, "Please enter your phone number"),
     city: z.string().min(3, "Please enter your city"),
     state: z.string().min(2, "Please enter your state"),
     country: z.string().min(4, "Please enter your country"),
-    cpf: z.string().min(11, "Please enter your CPF"),
-    linkedinUrl: z.string()
-      .url("Please enter a valid URL")
-      .regex(/^https:\/\/www\.linkedin\.com\/in\/[a-zA-Z0-9-]+\/?$/, "Invalid LinkedIn URL. Example: https://www.linkedin.com/in/your-name/"),
+    linkedinUrl: z.string().url("Please enter a valid URL").regex(
+      /^https:\/\/www\.linkedin\.com\/in\/[a-zA-Z0-9-]+\/?$/,
+      "URL inválida. Exemplo: https://www.linkedin.com/in/seu-nome/"
+    ),
   }),
 });
 
@@ -34,22 +32,9 @@ export default function Form() {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [formMessage, setFormMessage] = useState<string | null>(null);
-
-  const NEXT_PUBLIC_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://lts-us-website.vercel.app";
-  const NEXT_API_CANDIDATES = process.env.NEXT_API_CANDIDATES || "/api/candidates";
-
-  useEffect(() => {
-    console.log("📢 Form loaded!");
-  }, []);
-
-  const openModal = () => {
-    setModalIsOpen(true);
-  };
-
-  const closeModal = () => {
-    setModalIsOpen(false);
-    reset();
-  };
+  
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const API_CANDIDATES = process.env.NEXT_PUBLIC_API_CANDIDATES;
 
   const {
     handleSubmit,
@@ -74,13 +59,16 @@ export default function Form() {
     },
   });
 
-  const handleFormSubmit = async (data: FormProps) => {
-    console.log("📢 Sending request...");
-    console.log("📦 Data being sent:", data);
-    setIsSending(true);
+  const openModal = () => setModalIsOpen(true);
+  const closeModal = () => {
+    setModalIsOpen(false);
+    reset();
+  };
 
+  const handleFormSubmit = async (data: FormProps) => {
+    setIsSending(true);
     try {
-      const response = await fetch(`https://lts-us-website.vercel.app/api/candidates`, {
+      const response = await fetch(`${API_BASE_URL}${API_CANDIDATES}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -89,23 +77,17 @@ export default function Form() {
       });
 
       const result = await response.json();
-      console.log("📌 API response:", result);
 
       if (response.ok) {
         openModal();
-        setFormMessage("✅ Your information was sent successfully!");
-        reset();
-
-        // ✅ Automatically close modal after 2 seconds (2000ms)
-        setTimeout(() => {
-          closeModal();
-        }, 2000);
+        setFormMessage("Your registration was successfully submitted!");
+        setTimeout(closeModal, 2000);
       } else {
-        setFormMessage(result.error || "❌ Error submitting form.");
+        setFormMessage(result.error || "Error on data sending.");
       }
     } catch (error) {
-      console.error("🚨 Error connecting to server:", error);
-      setFormMessage("❌ Error connecting to server.");
+      console.error("Error with server connection:", error);
+      setFormMessage("Failed with server connection. Try again...");
     } finally {
       setIsSending(false);
     }
@@ -117,48 +99,46 @@ export default function Form() {
       <Analytics />
       <form onSubmit={handleSubmit(handleFormSubmit)}>
         <S.Title>
-          <h1>Register for our opportunities</h1>
-          <label className="line"></label>
+          <h1>Sign up to apply for our job openings.</h1>
+          <label className="line" />
         </S.Title>
 
         <S.Data>
-          <input {...register("dataClient.firstName")} type="text" placeholder="First Name" required />
-          {errors.dataClient?.firstName && <p style={{ color: "red", fontSize: "10px" }}>{errors.dataClient.firstName.message}</p>}
+          <input {...register("dataClient.firstName")} type="text" placeholder="First Name" />
+          {errors.dataClient?.firstName && <p>{errors.dataClient.firstName.message}</p>}
 
-          <input {...register("dataClient.lastName")} type="text" placeholder="Last Name" required />
-          {errors.dataClient?.lastName && <p style={{ color: "red", fontSize: "10px" }}>{errors.dataClient.lastName.message}</p>}
+          <input {...register("dataClient.lastName")} type="text" placeholder="Last Name" />
+          {errors.dataClient?.lastName && <p>{errors.dataClient.lastName.message}</p>}
 
-          <input {...register("dataClient.email")} type="email" placeholder="Email" required />
-          {errors.dataClient?.email && <p style={{ color: "red", fontSize: "10px" }}>{errors.dataClient.email.message}</p>}
+          <input {...register("dataClient.email")} type="email" placeholder="Email" />
+          {errors.dataClient?.email && <p>{errors.dataClient.email.message}</p>}
 
-          <input {...register("dataClient.telephone")} type="tel" placeholder="Phone Number" required />
-          {errors.dataClient?.telephone && <p style={{ color: "red", fontSize: "10px" }}>{errors.dataClient.telephone.message}</p>}
+          <input {...register("dataClient.telephone")} type="tel" placeholder="Telephone" />
+          {errors.dataClient?.telephone && <p>{errors.dataClient.telephone.message}</p>}
 
-          <input {...register("dataClient.city")} type="text" placeholder="City" required />
-          {errors.dataClient?.city && <p style={{ color: "red", fontSize: "10px" }}>{errors.dataClient.city.message}</p>}
+          <input {...register("dataClient.city")} type="text" placeholder="City" />
+          {errors.dataClient?.city && <p>{errors.dataClient.city.message}</p>}
 
-          <input {...register("dataClient.state")} type="text" placeholder="State" required />
-          {errors.dataClient?.state && <p style={{ color: "red", fontSize: "10px" }}>{errors.dataClient.state.message}</p>}
+          <input {...register("dataClient.state")} type="text" placeholder="State" />
+          {errors.dataClient?.state && <p>{errors.dataClient.state.message}</p>}
 
-          <input {...register("dataClient.country")} type="text" placeholder="Country" required />
-          {errors.dataClient?.country && <p style={{ color: "red", fontSize: "10px" }}>{errors.dataClient.country.message}</p>}
+          <input {...register("dataClient.country")} type="text" placeholder="Country" />
+          {errors.dataClient?.country && <p>{errors.dataClient.country.message}</p>}
 
-          <input {...register("dataClient.linkedinUrl")} type="text" placeholder="LinkedIn Profile URL" required />
-          {errors.dataClient?.linkedinUrl && <p style={{ color: "red", fontSize: "10px" }}>{errors.dataClient.linkedinUrl.message}</p>}
+          <input {...register("dataClient.linkedinUrl")} type="text" placeholder="LinkedIn URL" />
+          {errors.dataClient?.linkedinUrl && <p>{errors.dataClient.linkedinUrl.message}</p>}
         </S.Data>
 
         <S.FirstButton>
-          <label>
-            <button type="submit" className={isSending ? "sending" : ""} disabled={isSending}>
-              {isSending ? "Sending..." : "Submit"}
-            </button>
-          </label>
+          <button type="submit" disabled={isSending} className={isSending ? "sending" : ""}>
+            {isSending ? "Sending..." : "Send"}
+          </button>
         </S.FirstButton>
       </form>
 
-      <Modal isOpen={modalIsOpen} onRequestClose={closeModal} contentLabel="Registration Complete">
+      <Modal isOpen={modalIsOpen} onRequestClose={closeModal} contentLabel="Registration Modal">
         <p>{formMessage}</p>
-        <S.Button onClick={closeModal}>
+        <S.Button>
           <GoIssueClosed />
         </S.Button>
       </Modal>

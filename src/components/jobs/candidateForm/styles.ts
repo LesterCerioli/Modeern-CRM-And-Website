@@ -4,7 +4,7 @@ import styled from 'styled-components'
 
 
 export const Container = styled.div`
- margin:80px;
+ margin:80px;   
 
 form{
 font-family: Montserrat, arial, sans-serif;
@@ -14,14 +14,14 @@ align-items: center;
 height: 100%;
 width: 100vw;
 margin: 0 auto;
-max-width: 98%;
+max-width: 98%;  
 background-color: inherit;
 
  }
 
 @media (max-width:700px){
     margin:20px;
-
+    
 }
 `;
 
@@ -41,7 +41,7 @@ text-align:center;
 
 
 
-}
+}  
 `;
 
 export const Data = styled.div`
@@ -65,7 +65,7 @@ border: 1px solid #E2E2E2;
 border-radius: 0.625rem;
 background-color: inherit;
 
-}
+} 
 
 textarea {
 font-family: Montserrat, arial, sans-serif;
@@ -107,8 +107,8 @@ button{
     padding: 0.65rem;
     margin-top: 10px;
     border: none;
-
-
+    
+   
 
    button:hover{
     transition: 0.8s;
@@ -116,7 +116,7 @@ button{
    }
 
    @media (max-width: 425px){
-button{
+button{ 
 
 
   margin-bottom: 10px;
@@ -138,7 +138,7 @@ font-size: 0.69rem;
 color: #595959;
 margin-top: 40px;
 margin-bottom: 35px;
-text-decoration: none;
+text-decoration: none; 
 padding: 5px;
 text-align: center;
 
@@ -149,7 +149,7 @@ margin-top: 10px;
 }
 
 
-`;
+`; 
 
 export const WhatsappButton = styled.div`
 width: 100%;
@@ -158,7 +158,7 @@ align-items:center;
 justify-content: center;
 `
 
-
+  
 export const SecondButton = styled.div`
 .mensagem{
 display: flex;
@@ -199,7 +199,7 @@ export const Address = styled.div`
     font-size: 1.25rem;
     margin: 25px 0 10px 0;
     text-align: center;
-
+    
 }
 `;
 
@@ -213,14 +213,14 @@ a{
     justify-content: center;
     color: #021F3E;
     text-decoration: none;
-    max-width: 100%;
+    max-width: 100%;   
     padding: 10px;
-
+    
 @media(max-width:460px) {
-
+    
     font-size: 12px;
 }
-
+    
 }
 `;
 

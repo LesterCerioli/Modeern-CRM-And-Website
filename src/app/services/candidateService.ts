@@ -61,8 +61,7 @@ export class CandidateService {
 
   async create(candidate: Omit<Candidate, 'createdAt' | 'updatedAt'>): Promise<Candidate> {
     await this.ensureIndexExists();
-
-    // Verifica se candidato já existe
+    
     const { hits } = await this.esClient.search<Candidate>({
       index: this.indexName,
       query: { term: { email: candidate.email.toLowerCase() } }
