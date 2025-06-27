@@ -33,8 +33,8 @@ export default function Form() {
   const [isSending, setIsSending] = useState(false);
   const [formMessage, setFormMessage] = useState<string | null>(null);
   
-  const API_BASE_URL = process.env.NEXT_API_BASE_URL;
-  const API_CANDIDATES = process.env.NEXT_API_CANDIDATES;
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const API_CANDIDATES = process.env.NEXT_PUBLIC_API_CANDIDATES;
 
   const {
     handleSubmit,
