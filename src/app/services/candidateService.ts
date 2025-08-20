@@ -1,5 +1,6 @@
-import { Client } from "@elastic/elasticsearch";
+import { Pool } from 'pg';
 import * as dotenv from 'dotenv';
+import { v4 as uuidv4 } from 'uuid';
 
 dotenv.config();
 
@@ -18,98 +19,79 @@ interface Candidate {
 }
 
 export class CandidateService {
-  private readonly esClient: Client;
-  private readonly indexName: string;
+  private readonly db: Pool;
 
   constructor() {
-    if (!process.env.ELASTICSEARCH_CLOUD_URL || !process.env.ELASTICSEARCH_API_KEY || !process.env.ELASTICSEARCH_INDEX) {
-      throw new Error('Missing Elasticsearch configuration in .env');
-    }
-
-    this.esClient = new Client({
-      node: process.env.ELASTICSEARCH_CLOUD_URL,
-      auth: { apiKey: process.env.ELASTICSEARCH_API_KEY },
-      maxRetries: 3,
-      requestTimeout: 30000
+    this.db = new Pool({
+      host: process.env.DB_HOST,
+      port: parseInt(process.env.DB_PORT || '5432'),
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+      application_name: 'CandidateService'
+      
     });
-    this.indexName = process.env.ELASTICSEARCH_INDEX;
   }
 
-  private async ensureIndexExists(): Promise<void> {
-    const exists = await this.esClient.indices.exists({ index: this.indexName });
-    if (!exists) {
-      await this.esClient.indices.create({
-        index: this.indexName,
-        mappings: {
-          properties: {
-            id: { type: 'keyword' },
-            firstName: { type: 'text' },
-            lastName: { type: 'text' },
-            email: { type: 'keyword' },
-            telephone: { type: 'keyword' },
-            city: { type: 'text' },
-            state: { type: 'keyword' },
-            country: { type: 'keyword' },
-            linkedinUrl: { type: 'keyword' },
-            createdAt: { type: 'date' },
-            updatedAt: { type: 'date' }
-          }
-        }
-      });
-    }
-  }
+  async create(candidate: Omit<Candidate, 'id' | 'createdAt' | 'updatedAt'>): Promise<Candidate> {
+    const email = candidate.email.toLowerCase();
 
-  async create(candidate: Omit<Candidate, 'createdAt' | 'updatedAt'>): Promise<Candidate> {
-    await this.ensureIndexExists();
-    
-    const { hits } = await this.esClient.search<Candidate>({
-      index: this.indexName,
-      query: { term: { email: candidate.email.toLowerCase() } }
-    });
-
-    if (hits.hits.length > 0) {
-      throw new Error("Candidate with this email already exists");
+    const existing = await this.db.query('SELECT * FROM candidates WHERE email = $1', [email]);
+    if (existing.rows.length > 0) {
+      throw new Error('Candidate with this email already exists');
     }
 
+    const id = uuidv4();
     const now = new Date().toISOString();
-    const newCandidate: Candidate = {
+
+    await this.db.query(
+      `INSERT INTO candidates (
+        id, first_name, last_name, email, telephone, city, state, country, linkedin_url, created_at
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
+      )`,
+      [
+        id,
+        candidate.firstName,
+        candidate.lastName,
+        email,
+        candidate.telephone,
+        candidate.city,
+        candidate.state,
+        candidate.country,
+        candidate.linkedinUrl,
+        now
+      ]
+    );
+
+    return {
+      id,
       ...candidate,
-      email: candidate.email.toLowerCase(),
+      email,
       createdAt: now,
       updatedAt: now
     };
-
-    const { _id } = await this.esClient.index({
-      index: this.indexName,
-      document: newCandidate,
-      refresh: true
-    });
-
-    return { ...newCandidate, id: _id };
   }
 
   async findByEmail(email: string): Promise<Candidate> {
-    const { hits } = await this.esClient.search<Candidate>({
-      index: this.indexName,
-      query: { term: { email: email.toLowerCase() } }
-    });
-
-    if (hits.hits.length === 0) {
-      throw new Error("Candidate not found");
+    const result = await this.db.query('SELECT * FROM candidates WHERE email = $1', [email.toLowerCase()]);
+    if (result.rows.length === 0) {
+      throw new Error('Candidate not found');
     }
 
-    return hits.hits[0]._source!;
+    return result.rows[0];
   }
 
   async update(id: string, updates: Partial<Omit<Candidate, 'id' | 'createdAt'>>): Promise<void> {
-    await this.esClient.update({
-      index: this.indexName,
-      id,
-      doc: {
-        ...updates,
-        updatedAt: new Date().toISOString()
-      },
-      refresh: true
-    });
+    const fields = Object.keys(updates);
+    if (fields.length === 0) return;
+
+    const values = Object.values(updates);
+    const setClause = fields.map((field, i) => `${field} = $${i + 1}`).join(', ');
+
+    await this.db.query(
+      `UPDATE candidates SET ${setClause}, updated_at = $${fields.length + 1} WHERE id = $${fields.length + 2}`,
+      [...values, new Date().toISOString(), id]
+    );
   }
 }
