@@ -99,7 +99,9 @@ export default function Form() {
       <Analytics />
       <form onSubmit={handleSubmit(handleFormSubmit)}>
         <S.Title>
-          <h1>Sign up to apply for our job openings.</h1>
+          <br />
+          <br />
+          <h1>Sign up for jobs.</h1>
           <label className="line" />
         </S.Title>
 
