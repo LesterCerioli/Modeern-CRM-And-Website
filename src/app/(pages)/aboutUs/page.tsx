@@ -10,6 +10,7 @@ import { AboutUsSection } from "@/components/home/cookies/aboutUsSection/aboutUs
 import { TimelineSection } from "@/components/home/cookies/timelineSection/TimelineSection";
 import { BlogSection } from "@/components/home/cookies/blogSection/blogSection";
 import { ContactSection } from "@/components/home/cookies/contactSection/contactSection";
+import WhatsAppButton from "@/components/shared/whatsapp-button/WhatsAppButton";
 
 const Home: React.FC = () => {
   return (
@@ -27,6 +28,7 @@ const Home: React.FC = () => {
           <Cookies />
         </S.CookiesWrapper>
       </S.Container>
+      <WhatsAppButton />
     </S.PageBackground> 
   );
 };

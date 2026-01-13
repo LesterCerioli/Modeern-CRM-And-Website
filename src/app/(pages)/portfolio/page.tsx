@@ -5,6 +5,7 @@ import OurPortfolio from "@/components/portfolio/ourPortfolio/ourPortfolio";
 import OurClients from "@/components/portfolio/ourClients/ourClients";
 import ClientsList from "@/components/portfolio/clientsList/clientsList";
 import OurGithub from "@/components/portfolio/ourGithub/ourGithub";
+import WhatsAppButton from "@/components/shared/whatsapp-button/WhatsAppButton";
 
 
 
@@ -20,6 +21,8 @@ export default function Portfolio() {
       <section>
         <OurGithub />
       </section>
+      <WhatsAppButton />
     </S.Container>
+    
   );
 }
