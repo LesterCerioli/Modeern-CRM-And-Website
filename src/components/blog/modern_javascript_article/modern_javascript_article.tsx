@@ -19,7 +19,7 @@ export default function ModernJavaScriptArticle({ isOpen, onClose }: ModernJavaS
           <S.ArticleBadge>JavaScript</S.ArticleBadge>
           <S.ArticleTitle>Mastering Modern JavaScript: ES6+ Features You Need to Know</S.ArticleTitle>
           <S.ArticleMeta>
-            <span>January 15, 2024</span>
+            <span>January 07, 2026</span>
             <S.DotDivider>•</S.DotDivider>
             <span>8 min read</span>
           </S.ArticleMeta>

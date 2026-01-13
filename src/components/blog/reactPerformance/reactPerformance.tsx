@@ -19,7 +19,7 @@ export default function ReactPerformance({ isOpen, onClose }: ReactPerformancePr
           <S.ArticleBadge>React</S.ArticleBadge>
           <S.ArticleTitle>React Performance Optimization: Best Practices for 2026</S.ArticleTitle>
           <S.ArticleMeta>
-            <span>January 10, 2024</span>
+            <span>January 15, 2026</span>
             <S.DotDivider>•</S.DotDivider>
             <span>10 min read</span>
           </S.ArticleMeta>
