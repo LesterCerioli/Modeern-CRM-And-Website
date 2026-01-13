@@ -4,29 +4,29 @@ import * as S from "./styles";
 export const TimelineSection: React.FC = () => {
   const timelineItems = [
     { 
-      year: "2023", 
+      year: "2003", 
       title: "Company Founded", 
       description: "Started operations with a vision to revolutionize the tech industry" 
     },
     { 
+      year: "2016", 
+      title: "Migration for Cloud becoming in a fully-remote Business", 
+      description: "Migrated everything infrastructure for Cloud and our teams started to work fully-remote" 
+    },
+    { 
+      year: "2018", 
+      title: "Added a new business branch: Software Solutions development from own digital products", 
+      description: "We started to develop own digital products as service to grow more our revenue and scale our business" 
+    },
+    { 
       year: "2024", 
-      title: "Series A Funding", 
-      description: "Secured $5M in funding to expand our team and services" 
+      title: "Own AI Solutions implementations", 
+      description: "Started to provide AI solutions services for companies" 
     },
     { 
       year: "2025", 
-      title: "Product Launch", 
-      description: "Launched our flagship AI-powered solutions platform" 
-    },
-    { 
-      year: "2026", 
-      title: "Growth Milestone", 
-      description: "Expanded to serve 500+ clients across North America" 
-    },
-    { 
-      year: "2027", 
-      title: "Industry Recognition", 
-      description: "Awarded 'Innovation Leader of the Year' by TechForward" 
+      title: "Own Datacenters implementations", 
+      description: "Started to build new datacenters on more than 40 countries." 
     },
   ];
 

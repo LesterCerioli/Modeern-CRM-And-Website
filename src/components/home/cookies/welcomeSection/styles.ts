@@ -3,7 +3,7 @@ import styled from "styled-components";
 export const Container = styled.section`
   padding: 100px 0;
   text-align: center;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: linear-gradient(135deg, #0e4e27ff 0%, #c3cfe2 100%);
 `;
 
 export const Content = styled.div`
@@ -14,7 +14,7 @@ export const Content = styled.div`
 
 export const Title = styled.h1`
   font-size: 3rem;
-  color: #333;
+  color: #f1ddddff;
   margin-bottom: 20px;
   
   @media (max-width: 768px) {

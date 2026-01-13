@@ -4,6 +4,7 @@ export const Container = styled.div`
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
+  color: #fff;
 
   button {
     text-transform: uppercase;
@@ -28,6 +29,7 @@ export const MainContent = styled.main`
   max-width: 1200px;
   margin: 0 auto;
   padding: 80px 20px;
+  color: #fff;
 
   & > section {
     margin-bottom: 100px;
@@ -39,4 +41,29 @@ export const CookiesWrapper = styled.div`
   bottom: 20px;
   right: 20px;
   z-index: 1000;
+`;
+
+export const PageBackground = styled.div`
+  background-color: #FFA500;
+  color: #320909ff;
+  min-height: 100vh;
+`;
+
+export const GreenWelcomeWrapper = styled.div`
+  background-color: rgba(161, 23, 10, 1);
+  color: #860e0eff;
+  
+  
+  padding: 80px 20px;
+  
+  
+  {
+    color: #fff !important;
+  }
+  
+  
+  h1, h2, h3, h4, h5, h6,
+  p, span, div {
+    color: #fff;
+  }
 `;

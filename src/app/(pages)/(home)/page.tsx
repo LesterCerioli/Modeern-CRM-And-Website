@@ -7,7 +7,8 @@ import * as S from "./styles";
 
 import Cookies from "@/components/home/cookies/cookies/cookies";
 import { Header } from "@/components/shared/header/header";
-import { Footer } from "@/components/shared/footer/footer";
+
+import WhatsAppButton from "@/components/shared/whatsapp-button/WhatsAppButton";
 
 const Home: React.FC = () => {
   const services = [
@@ -82,7 +83,7 @@ const Home: React.FC = () => {
             </S.AboutUsImageWrapper>
           </S.AboutUsWithImageSection>
 
-          {/* Services Section - Nova versão com fundo verde */}
+          
           <S.ServicesSectionGreen>
             <S.SectionTitleWhiteCenter>Services</S.SectionTitleWhiteCenter>
             <S.ServicesGrid>
@@ -93,9 +94,10 @@ const Home: React.FC = () => {
                 </S.ServiceCardGreen>
               ))}
             </S.ServicesGrid>
+            
           </S.ServicesSectionGreen>
 
-          {/* Case Studies Section with Image */}
+          
           <S.CaseStudiesWithImageSection>
             <S.CaseStudiesContent>
               <S.SectionTitleWhite>Case Studies</S.SectionTitleWhite>
@@ -133,8 +135,9 @@ const Home: React.FC = () => {
             </S.GlobalPresenceTextWhite>
           </S.GlobalPresenceOrangeSection>
         </S.MainContent>
+        <WhatsAppButton />
 
-        <Footer />
+        
 
         <S.CookiesWrapper>
           <Cookies />
