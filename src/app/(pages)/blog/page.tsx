@@ -51,7 +51,7 @@ export default function BlogPage() {
                 scalable code.
               </p>
               
-              {/* Abre artigo JavaScript */}
+              
               <S.ReadMoreButton onClick={() => handleOpenArticle("javascript")}>
                 READ MORE
               </S.ReadMoreButton>
@@ -71,8 +71,8 @@ export default function BlogPage() {
             </S.ImageWrapper>
 
             <S.CardContent>
-              <S.Meta>2024-01-10 · 10 min read</S.Meta>
-              <h3>React Performance Optimization: Best Practices for 2024</h3>
+              <S.Meta>2026-01-15 · 10 min read</S.Meta>
+              <h3>React Performance Optimization: Best Practices for 2026</h3>
               <p>
                 Learn the latest techniques to optimize your React applications
                 for maximum performance and better user experience.
