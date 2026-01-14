@@ -2,15 +2,23 @@
 import * as S from "./styles";
 import Image from "next/image";
 import Link from "next/link";
+import router from "next/router";
 import { useState } from 'react';
 import { CgClose } from 'react-icons/cg';
 
 
   export function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [currentRole, setCurrentRole] = useState<string | null>(null);
 
     const toggleMenu = () => {
       setIsMenuOpen(!isMenuOpen);
+    };
+
+    const handleLogout = () => {
+      sessionStorage.removeItem("currentRole");
+      document.cookie = 'token=; Max-Age=0'; // Limpa o cookie
+      router.push('/login');
     };
 
     return (
@@ -35,8 +43,21 @@ import { CgClose } from 'react-icons/cg';
               <S.Link href="contact">Contact</S.Link>
               <S.Link href="aboutUs">About Us</S.Link>
               <S.Link href="blog">Blog</S.Link>
+              
               {isMenuOpen && (
                 <S.CloseButton onClick={toggleMenu}>
+                  <CgClose />
+                </S.CloseButton>
+              )}
+              {!currentRole ? (
+                <S.Link href="/login">Login</S.Link>
+              ) : (
+                <S.Link href="/" onClick={handleLogout}>
+                  Logout
+                </S.Link>
+              )}
+              {isMenuOpen && (
+                <S.CloseButton>
                   <CgClose />
                 </S.CloseButton>
               )}
