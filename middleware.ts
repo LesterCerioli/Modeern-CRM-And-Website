@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 
 const ALLOWED_ORIGINS = [
-    "https://lts-us-website.vercel.app"
+    ""
     
     
 ];
