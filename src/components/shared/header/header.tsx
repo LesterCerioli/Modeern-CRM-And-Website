@@ -1,25 +1,34 @@
-"use client"
+"use client";
 import * as S from "./styles";
 import Image from "next/image";
-import Link from "next/link";
-import router from "next/router";
-import { useState } from 'react';
+import { useState, useEffect } from "react";
 import { CgClose } from 'react-icons/cg';
+import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
 
 
   export function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [currentRole, setCurrentRole] = useState<string | null>(null);
+    const router = useRouter();
+    const pathname = usePathname();
 
-    const toggleMenu = () => {
-      setIsMenuOpen(!isMenuOpen);
-    };
+    useEffect(() => {
+      const role = sessionStorage.getItem("currentRole");
+      setCurrentRole(role);
+
+      if (!role && ['/accounting', '/finance', '/admin'].includes(pathname)) {
+        router.push('/login');
+      }
+    }, [pathname, router]);
 
     const handleLogout = () => {
       sessionStorage.removeItem("currentRole");
       document.cookie = 'token=; Max-Age=0'; // Limpa o cookie
       router.push('/login');
     };
+
+    const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
     return (
       <S.Container>
@@ -49,6 +58,10 @@ import { CgClose } from 'react-icons/cg';
                   <CgClose />
                 </S.CloseButton>
               )}
+              {currentRole === "admin" && (
+                <S.Link href="/admin">Admin</S.Link>
+              )}
+              
               {!currentRole ? (
                 <S.Link href="/login">Login</S.Link>
               ) : (
