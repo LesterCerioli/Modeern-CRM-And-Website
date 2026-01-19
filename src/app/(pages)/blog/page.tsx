@@ -8,6 +8,7 @@ import { useState } from "react";
 import ReactPerformance from "@/components/blog/reactPerformance/reactPerformance";
 import WhatsAppButton from "@/components/shared/whatsapp-button/WhatsAppButton";
 
+
 type ArticleType = "javascript" | "react";
 
 export default function BlogPage() {
@@ -29,6 +30,7 @@ export default function BlogPage() {
         <S.Hero>
           <h1>New Articles</h1>
           <p>Handpicked content for your learning journey</p>
+          
         </S.Hero>
 
         <S.FeaturedGrid>
@@ -94,6 +96,7 @@ export default function BlogPage() {
         isOpen={openArticle === "javascript"} 
         onClose={handleCloseArticle} 
       />
+      
       
       <ReactPerformance 
         isOpen={openArticle === "react"} 
