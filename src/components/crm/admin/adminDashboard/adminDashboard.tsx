@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   DashboardLayout, 
@@ -33,10 +34,29 @@ import {
   FiTarget,
   FiShield
 } from 'react-icons/fi';
+import UserComponent from '../user/user';
+
+
+interface DashboardState {
+  collapsed: boolean;
+  activeNav: string;
+}
 
 const AdminDashboard: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
-  const [activeNav, setActiveNav] = useState('dashboard');
+  
+  const [state, setState] = useState<DashboardState>({
+    collapsed: false,
+    activeNav: 'dashboard'
+  });
+
+  
+  const setCollapsed = (collapsed: boolean) => {
+    setState(prev => ({ ...prev, collapsed }));
+  };
+
+  const setActiveNav = (activeNav: string) => {
+    setState(prev => ({ ...prev, activeNav }));
+  };
 
   
   const dashboardCards = [
@@ -82,7 +102,6 @@ const AdminDashboard: React.FC = () => {
     }
   ];
 
-  
   const quickStats = [
     { title: 'Total Users', value: '8,248' },
     { title: 'Active Projects', value: '42' },
@@ -90,7 +109,6 @@ const AdminDashboard: React.FC = () => {
     { title: 'Pending Tasks', value: '18' }
   ];
 
-  
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <FiHome /> },
     { id: 'users', label: 'Users', icon: <FiUsers /> },
@@ -102,115 +120,162 @@ const AdminDashboard: React.FC = () => {
     { id: 'support', label: 'Support', icon: <FiHelpCircle /> }
   ];
 
+  
+  const renderContent = () => {
+    switch (state.activeNav) {
+      case 'dashboard':
+        return (
+          <>
+            <DashboardHeader>
+              <h1>Dashboard</h1>
+              <div>
+                <button style={{
+                  backgroundColor: '#e67e22',
+                  color: 'white',
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  marginRight: '10px'
+                }}>
+                  New Report
+                </button>
+                <button style={{
+                  backgroundColor: '#2c3e50',
+                  color: 'white',
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontWeight: '600'
+                }}>
+                  Settings
+                </button>
+              </div>
+            </DashboardHeader>
+
+            <WelcomeMessage>
+              <h2>Welcome to the Admin Dashboard</h2>
+              <p>
+                Manage all aspects of your business from this centralized dashboard. 
+                View real-time metrics, access department controls, and monitor system activities.
+              </p>
+            </WelcomeMessage>
+
+            <QuickStats>
+              {quickStats.map((stat, index) => (
+                <StatCard key={index}>
+                  <h4>{stat.title}</h4>
+                  <p>{stat.value}</p>
+                </StatCard>
+              ))}
+            </QuickStats>
+
+            <h2 style={{ color: '#2c3e50', marginBottom: '15px' }}>Department Management</h2>
+            <DashboardGrid>
+              {dashboardCards.map((card, index) => (
+                <DashboardCard key={index}>
+                  {card.icon}
+                  <h3>{card.title}</h3>
+                  <p>{card.description}</p>
+                </DashboardCard>
+              ))}
+            </DashboardGrid>
+
+            <ActivitiesSection>
+              <h2 style={{ marginTop: '0', color: '#2c3e50' }}>Recent Activities</h2>
+              <ul style={{ paddingLeft: '20px', color: '#7f8c8d' }}>
+                <li style={{ marginBottom: '10px' }}>User "John Doe" updated profile information (10 mins ago)</li>
+                <li style={{ marginBottom: '10px' }}>New sales report generated for Q3 (45 mins ago)</li>
+                <li style={{ marginBottom: '10px' }}>Financial department uploaded new documents (2 hours ago)</li>
+                <li style={{ marginBottom: '10px' }}>Marketing campaign "Summer Sale" launched (5 hours ago)</li>
+                <li style={{ marginBottom: '10px' }}>System maintenance completed successfully (Yesterday)</li>
+              </ul>
+            </ActivitiesSection>
+          </>
+        );
+
+      case 'users':
+        
+        return <UserComponent />;
+
+      default:
+        
+        return (
+          <div style={{ 
+            padding: '40px',
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+            minHeight: '400px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <h1 style={{ color: '#2c3e50', marginBottom: '20px' }}>
+              {state.activeNav.charAt(0).toUpperCase() + state.activeNav.slice(1)}
+            </h1>
+            <p style={{ color: '#7f8c8d', fontSize: '1.1rem' }}>
+              Content for <strong>{state.activeNav}</strong> will be available soon.
+            </p>
+            <div style={{
+              marginTop: '30px',
+              padding: '20px',
+              backgroundColor: '#f8f9fa',
+              borderRadius: '8px',
+              maxWidth: '500px'
+            }}>
+              <p style={{ margin: '0', color: '#95a5a6', fontSize: '0.9rem' }}>
+                This section is under development. Check back later for updates.
+              </p>
+            </div>
+          </div>
+        );
+    }
+  };
+
   return (
     <DashboardLayout>
       {/* Sidebar */}
-      <Sidebar $collapsed={collapsed}>
-        <LogoContainer $collapsed={collapsed}>
+      <Sidebar $collapsed={state.collapsed}>
+        <LogoContainer $collapsed={state.collapsed}>
           <br />
-          <h2>{collapsed ? 'AD' : 'ADMIN'}</h2>
-          {!collapsed && <p>Administration Panel</p>}
+          <h2>{state.collapsed ? 'AD' : 'ADMIN'}</h2>
+          {!state.collapsed && <p>Administration Panel</p>}
         </LogoContainer>
 
         <NavMenu>
           {navItems.map((item) => (
             <NavItem 
               key={item.id}
-              $collapsed={collapsed}
-              $active={activeNav === item.id}
+              $collapsed={state.collapsed}
+              $active={state.activeNav === item.id}
               onClick={() => setActiveNav(item.id)}
             >
               {item.icon}
-              {!collapsed && <span>{item.label}</span>}
+              {!state.collapsed && <span>{item.label}</span>}
             </NavItem>
           ))}
         </NavMenu>
 
-        <UserInfo $collapsed={collapsed}>
-          {!collapsed && (
+        <UserInfo $collapsed={state.collapsed}>
+          {!state.collapsed && (
             <>
               <p>Welcome back,</p>
               <p><strong>Admin User</strong></p>
             </>
           )}
-          <ToggleButton onClick={() => setCollapsed(!collapsed)}>
-            {collapsed ? <FiChevronRight size={20} /> : <FiChevronLeft size={20} />}
+          <ToggleButton onClick={() => setCollapsed(!state.collapsed)}>
+            {state.collapsed ? <FiChevronRight size={20} /> : <FiChevronLeft size={20} />}
           </ToggleButton>
         </UserInfo>
       </Sidebar>
 
-      {/* Main Content */}
-      <MainContent $collapsed={collapsed}>
-        <DashboardHeader>
-          <h1>Dashboard</h1>
-          <div>
-            <button style={{
-              backgroundColor: '#e67e22',
-              color: 'white',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontWeight: '600',
-              marginRight: '10px'
-            }}>
-              New Report
-            </button>
-            <button style={{
-              backgroundColor: '#2c3e50',
-              color: 'white',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontWeight: '600'
-            }}>
-              Settings
-            </button>
-          </div>
-        </DashboardHeader>
-
-        <WelcomeMessage>
-          <h2>Welcome to the Admin Dashboard</h2>
-          <p>
-            Manage all aspects of your business from this centralized dashboard. 
-            View real-time metrics, access department controls, and monitor system activities.
-          </p>
-        </WelcomeMessage>
-
-        {/* Quick Stats */}
-        <QuickStats>
-          {quickStats.map((stat, index) => (
-            <StatCard key={index}>
-              <h4>{stat.title}</h4>
-              <p>{stat.value}</p>
-            </StatCard>
-          ))}
-        </QuickStats>
-
-        {/* Department Cards */}
-        <h2 style={{ color: '#2c3e50', marginBottom: '15px' }}>Department Management</h2>
-        <DashboardGrid>
-          {dashboardCards.map((card, index) => (
-            <DashboardCard key={index}>
-              {card.icon}
-              <h3>{card.title}</h3>
-              <p>{card.description}</p>
-            </DashboardCard>
-          ))}
-        </DashboardGrid>
-
-        {/* Recent Activities Section */}
-        <ActivitiesSection>
-          <h2 style={{ marginTop: '0', color: '#2c3e50' }}>Recent Activities</h2>
-          <ul style={{ paddingLeft: '20px', color: '#7f8c8d' }}>
-            <li style={{ marginBottom: '10px' }}>User "John Doe" updated profile information (10 mins ago)</li>
-            <li style={{ marginBottom: '10px' }}>New sales report generated for Q3 (45 mins ago)</li>
-            <li style={{ marginBottom: '10px' }}>Financial department uploaded new documents (2 hours ago)</li>
-            <li style={{ marginBottom: '10px' }}>Marketing campaign "Summer Sale" launched (5 hours ago)</li>
-            <li style={{ marginBottom: '10px' }}>System maintenance completed successfully (Yesterday)</li>
-          </ul>
-        </ActivitiesSection>
+      {/* Main Content - AGORA USA renderContent() */}
+      <MainContent $collapsed={state.collapsed}>
+        {renderContent()}
       </MainContent>
     </DashboardLayout>
   );
