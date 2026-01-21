@@ -3,13 +3,14 @@
 import ModernJavaScriptArticle from "@/components/blog/modern_javascript_article/modern_javascript_article";
 
 import * as S from "./styles";
-import Link from "next/link";
 import { useState } from "react";
 import ReactPerformance from "@/components/blog/reactPerformance/reactPerformance";
 import WhatsAppButton from "@/components/shared/whatsapp-button/WhatsAppButton";
+import CustomizedAIArticle from "@/components/blog/customized_ai_article/customized_ai_article";
+import BusinessSolutionsArticle from "@/components/blog/businessSolutionsArticle/businessSolutionsArticle";
 
 
-type ArticleType = "javascript" | "react";
+type ArticleType = "javascript" | "react" | "ai" | "b2b";
 
 export default function BlogPage() {
   const [openArticle, setOpenArticle] = useState<ArticleType | null>(null);
@@ -30,7 +31,6 @@ export default function BlogPage() {
         <S.Hero>
           <h1>New Articles</h1>
           <p>Handpicked content for your learning journey</p>
-          
         </S.Hero>
 
         <S.FeaturedGrid>
@@ -52,13 +52,9 @@ export default function BlogPage() {
                 developer should master to write cleaner, more efficient, and
                 scalable code.
               </p>
-              
-              
               <S.ReadMoreButton onClick={() => handleOpenArticle("javascript")}>
                 READ MORE
               </S.ReadMoreButton>
-
-              
             </S.CardContent>
           </S.FeaturedCard>
 
@@ -79,29 +75,80 @@ export default function BlogPage() {
                 Learn the latest techniques to optimize your React applications
                 for maximum performance and better user experience.
               </p>
-
-              {/* Abre artigo React */}
               <S.ReadMoreButton onClick={() => handleOpenArticle("react")}>
                 READ MORE
               </S.ReadMoreButton>
-
-              
             </S.CardContent>
+          </S.FeaturedCard>
+
+          {/* AI Article */}
+          <S.FeaturedCard>
+            <S.ImageWrapper>
+              <S.Badge variant="ai">AI Solutions</S.Badge>
+              <img
+                src="/assets/imagesBlog/post_001_jan_21_2026_1021am.png" // Use a imagem fornecida
+                alt="Customized AI Solutions"
+              />
+            </S.ImageWrapper>
+
+            <S.CardContent>
+              <S.Meta>2026-01-21 10:21 AM</S.Meta>
+              <h3>🚀 Supercharge Your Business with Customized AI</h3>
+              <p>
+                Discover how tailored AI solutions can transform your business operations,
+                improve efficiency, and drive measurable results across all sectors.
+              </p>
+              <S.ReadMoreButton onClick={() => handleOpenArticle("ai")}>
+                READ MORE
+              </S.ReadMoreButton>
+            </S.CardContent>
+          </S.FeaturedCard>
+
+          <S.FeaturedCard>
+            <S.ImageWrapper>
+              <S.Badge variant="b2b">B2B Solutions</S.Badge>
+              <img
+                src="/assets/imagesBlog/post002.png"
+                alt="Business Solutions"
+              />
+            </S.ImageWrapper>
+            <S.CardContent>
+              <S.Meta>2026-01-22 · 8 min read</S.Meta>
+              <h3>🚀 Boost Your Business with Lucas Technology Service</h3>
+              <p>
+                Discover how our B2B solutions in software development, cloud services, 
+                and database management can transform your business operations.
+              </p>
+              <S.ReadMoreButton onClick={() => handleOpenArticle("b2b")}>
+                READ MORE
+              </S.ReadMoreButton>
+            </S.CardContent>
+
           </S.FeaturedCard>
         </S.FeaturedGrid>
       </S.Container>
 
-      {/* Renderiza o componente correto baseado no artigo aberto */}
+      
       <ModernJavaScriptArticle 
         isOpen={openArticle === "javascript"} 
         onClose={handleCloseArticle} 
       />
       
-      
       <ReactPerformance 
         isOpen={openArticle === "react"} 
         onClose={handleCloseArticle} 
       />
+
+      <CustomizedAIArticle 
+        isOpen={openArticle === "ai"} 
+        onClose={handleCloseArticle} 
+      />
+
+      <BusinessSolutionsArticle 
+        isOpen={openArticle === "b2b"} 
+        onClose={handleCloseArticle} 
+      />
+      
       <WhatsAppButton />
     </>
   );
