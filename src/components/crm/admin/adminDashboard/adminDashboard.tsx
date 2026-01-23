@@ -1,4 +1,4 @@
-
+'use client';
 import React, { useState } from 'react';
 import { 
   DashboardLayout, 
@@ -32,21 +32,24 @@ import {
   FiTrendingUp,
   FiBriefcase,
   FiTarget,
-  FiShield
+  FiShield,
+  FiCpu 
 } from 'react-icons/fi';
+import ITDashboard from '@/components/crm/it/itDashboard/itDashboard'
 import UserComponent from '../user/user';
-
 
 interface DashboardState {
   collapsed: boolean;
   activeNav: string;
+  showITDashboard: boolean; // Novo estado
 }
 
 const AdminDashboard: React.FC = () => {
   
   const [state, setState] = useState<DashboardState>({
     collapsed: false,
-    activeNav: 'dashboard'
+    activeNav: 'dashboard',
+    showITDashboard: false
   });
 
   
@@ -55,7 +58,17 @@ const AdminDashboard: React.FC = () => {
   };
 
   const setActiveNav = (activeNav: string) => {
-    setState(prev => ({ ...prev, activeNav }));
+    setState(prev => ({ ...prev, activeNav, showITDashboard: false }));
+  };
+
+  // Função para mostrar o IT Dashboard
+  const showITDashboard = () => {
+    setState(prev => ({ ...prev, showITDashboard: true, activeNav: 'it' }));
+  };
+
+  // Função para voltar ao dashboard principal
+  const goBackToMainDashboard = () => {
+    setState(prev => ({ ...prev, showITDashboard: false, activeNav: 'dashboard' }));
   };
 
   
@@ -99,6 +112,11 @@ const AdminDashboard: React.FC = () => {
       title: 'Legal', 
       description: 'Legal documentation and compliance',
       icon: <FiShield size={28} /> 
+    },
+    {
+      title: 'IT',
+      description: 'Information Technology Dashboard',
+      icon: <FiCpu size={28} /> // Ícone específico para IT
     }
   ];
 
@@ -122,6 +140,43 @@ const AdminDashboard: React.FC = () => {
 
   
   const renderContent = () => {
+    // Se showITDashboard for true, renderize o ITDashboard
+    if (state.showITDashboard) {
+      return (
+        <div style={{ 
+          backgroundColor: 'white',
+          borderRadius: '12px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+          minHeight: 'calc(100vh - 100px)',
+          position: 'relative'
+        }}>
+          <button 
+            onClick={goBackToMainDashboard}
+            style={{
+              backgroundColor: '#3498db',
+              color: 'white',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: '600',
+              margin: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              zIndex: 100
+            }}
+          >
+            <FiChevronLeft /> Back to Dashboard
+          </button>
+          <ITDashboard />
+        </div>
+      );
+    }
+
     switch (state.activeNav) {
       case 'dashboard':
         return (
@@ -174,13 +229,59 @@ const AdminDashboard: React.FC = () => {
 
             <h2 style={{ color: '#2c3e50', marginBottom: '15px' }}>Department Management</h2>
             <DashboardGrid>
-              {dashboardCards.map((card, index) => (
-                <DashboardCard key={index}>
-                  {card.icon}
-                  <h3>{card.title}</h3>
-                  <p>{card.description}</p>
-                </DashboardCard>
-              ))}
+              {dashboardCards.map((card, index) => {
+                // Verifica se é o card IT
+                if (card.title === 'IT') {
+                  return (
+                    <DashboardCard 
+                      key={index} 
+                      onClick={showITDashboard}
+                      style={{ 
+                        cursor: 'pointer',
+                        position: 'relative',
+                        transition: 'all 0.3s ease',
+                        border: '2px solid transparent'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-5px)';
+                        e.currentTarget.style.borderColor = '#3498db';
+                        e.currentTarget.style.boxShadow = '0 8px 25px rgba(52, 152, 219, 0.2)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.borderColor = 'transparent';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
+                    >
+                      {card.icon}
+                      <h3>{card.title}</h3>
+                      <p>{card.description}</p>
+                      <div style={{
+                        position: 'absolute',
+                        top: '10px',
+                        right: '10px',
+                        backgroundColor: '#3498db',
+                        color: 'white',
+                        fontSize: '10px',
+                        fontWeight: '600',
+                        padding: '2px 8px',
+                        borderRadius: '10px',
+                        textTransform: 'uppercase'
+                      }}>
+                        Click
+                      </div>
+                    </DashboardCard>
+                  );
+                }
+                
+                return (
+                  <DashboardCard key={index}>
+                    {card.icon}
+                    <h3>{card.title}</h3>
+                    <p>{card.description}</p>
+                  </DashboardCard>
+                );
+              })}
             </DashboardGrid>
 
             <ActivitiesSection>
@@ -273,7 +374,7 @@ const AdminDashboard: React.FC = () => {
         </UserInfo>
       </Sidebar>
 
-      {/* Main Content - AGORA USA renderContent() */}
+      {/* Main Content */}
       <MainContent $collapsed={state.collapsed}>
         {renderContent()}
       </MainContent>
