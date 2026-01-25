@@ -64,7 +64,7 @@ export const ImageWrapper = styled.div`
 `;
 
 
-export const Badge = styled.span<{ variant?: "react" }>`
+export const Badge = styled.span<{ variant?: "javascript" | "react" | "ai" | "b2b" | "innovation" }>`
   position: absolute;
   top: 16px;
   left: 16px;

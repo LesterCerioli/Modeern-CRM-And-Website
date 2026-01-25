@@ -450,7 +450,7 @@ const UserComponent: React.FC = () => {
               email: '',
               password: '',
               role: 'user',
-              organization_name: 'Lucas Technology Services'
+              organization_name: 'Lucas Technology Service'
             });
             showNotification('success', 'Form cleared');
           }}>
