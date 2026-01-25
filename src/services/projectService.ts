@@ -314,11 +314,10 @@ export async function getRawProjects(
   console.log('[ProjectService] VERCEL:', process.env.VERCEL ? 'YES' : 'NO');
   console.log('[ProjectService] VERCEL_ENV:', process.env.VERCEL_ENV);
   console.log('[ProjectService] VERCEL_URL:', process.env.VERCEL_URL);
-  console.log('[ProjectService] VERCEL_GIT_COMMIT_REF:', process.env.VERCEL_GIT_COMMIT_REF);
   
   console.log('[ProjectService] === CONFIGURATION DEBUG ===');
   console.log('[ProjectService] NEXT_PUBLIC_API_BASE_URL:', process.env.NEXT_PUBLIC_API_BASE_URL || 'NOT SET');
-  console.log('[ProjectService] LTS_US_API_BASE_URL (raw):', process.env.LTS_US_API_BASE_URL || 'NOT SET');
+  console.log('[ProjectService] LTS_US_API_BASE_URL (raw):', process.env.LTS_US_API_BASE_URL ? 'SET' : 'NOT SET');
   console.log('[ProjectService] NEXT_PUBLIC_LTS_US_API_BASE_URL:', process.env.NEXT_PUBLIC_LTS_US_API_BASE_URL || 'NOT SET');
   console.log('[ProjectService] NEXTAUTH_URL:', process.env.NEXTAUTH_URL || 'NOT SET');
   
@@ -335,47 +334,34 @@ export async function getRawProjects(
     
     if (!PYTHON_API_URL) {
       console.error('[ProjectService] ERROR: Python API URL is not configured!');
-      console.error('[ProjectService] Check these environment variables:');
-      console.error('[ProjectService] - LTS_US_API_BASE_URL:', process.env.LTS_US_API_BASE_URL);
-      console.error('[ProjectService] - NEXT_PUBLIC_LTS_US_API_BASE_URL:', process.env.NEXT_PUBLIC_LTS_US_API_BASE_URL);
       throw new Error("Python API URL is not configured. Check LTS_US_API_BASE_URL environment variable.");
     }
     
     // 2. Get JWT token
     console.log('[ProjectService] === STEP 1: Getting JWT Token ===');
-    console.log('[ProjectService] Calling getExternalToken()...');
     
     const tokenData = await getExternalToken();
-    console.log('[ProjectService] Token data received:', {
-      hasToken: !!(tokenData.token || tokenData.access_token),
-      tokenKeys: Object.keys(tokenData),
-      tokenType: tokenData.token ? 'token' : tokenData.access_token ? 'access_token' : 'none'
-    });
+    console.log('[ProjectService] Token data received. Has token:', !!(tokenData.token || tokenData.access_token));
     
     const jwt = tokenData.token || tokenData.access_token;
     
     if (!jwt) {
       console.error('[ProjectService] ERROR: No JWT token found in response!');
-      console.error('[ProjectService] Full token response:', tokenData);
       throw new Error("Failed to obtain JWT token from Next.js API");
     }
     
-    console.log('[ProjectService] Token obtained successfully');
-    console.log('[ProjectService] Token length:', jwt.length);
-    console.log('[ProjectService] Token preview (first 30 chars):', jwt.substring(0, 30) + '...');
+    console.log('[ProjectService] Token obtained successfully. Length:', jwt.length);
     
     // 3. Build query parameters
     console.log('[ProjectService] === STEP 2: Building Query Parameters ===');
     const queryParams = new URLSearchParams();
     
-    // CRITICAL: Add token as query parameter (required by Python API)
+    // CRITICAL: Add token as query parameter
     queryParams.append('token', jwt);
-    console.log('[ProjectService] Added token to query parameters');
     
     // Organization name
     const orgName = params?.organization_name || 'default';
     queryParams.append('organization_name', orgName);
-    console.log('[ProjectService] Organization:', orgName);
     
     // Other parameters with defaults
     const limit = params?.limit || 100;
@@ -386,157 +372,130 @@ export async function getRawProjects(
     queryParams.append('offset', offset.toString());
     queryParams.append('include_deleted', includeDeleted.toString());
     
-    console.log('[ProjectService] Query params built:', {
+    console.log('[ProjectService] Query params:', {
       limit,
       offset,
       include_deleted: includeDeleted,
-      queryString: queryParams.toString().replace(jwt, '[REDACTED]')
+      organization: orgName
     });
     
-    // 4. Build URLs for testing different endpoints
+    // 4. Build URLs for testing
     console.log('[ProjectService] === STEP 3: Building API URLs ===');
     
-    // Option A: /projects/raw (most likely correct)
-    const urlA = `${PYTHON_API_URL}/projects/raw?${queryParams.toString()}`;
-    const safeUrlA = urlA.replace(jwt, '[REDACTED]');
+    const endpoints = [
+      { name: 'A', path: '/projects/raw' },
+      { name: 'B', path: '/projects-raw' },
+      { name: 'C', path: '/projects' }
+    ];
     
-    // Option B: /projects-raw (what you had before)
-    const urlB = `${PYTHON_API_URL}/projects-raw?${queryParams.toString()}`;
-    const safeUrlB = urlB.replace(jwt, '[REDACTED]');
+    const results = [];
     
-    // Option C: /projects (maybe root endpoint)
-    const urlC = `${PYTHON_API_URL}/projects?${queryParams.toString()}`;
-    const safeUrlC = urlC.replace(jwt, '[REDACTED]');
-    
-    console.log('[ProjectService] Testing these endpoints:');
-    console.log('[ProjectService] A (with slash):', safeUrlA);
-    console.log('[ProjectService] B (with hyphen):', safeUrlB);
-    console.log('[ProjectService] C (root):', safeUrlC);
-    
-    // 5. Try endpoints in order
-    console.log('[ProjectService] === STEP 4: Testing Endpoints ===');
-    
-    // Function to test a URL
-    const testEndpoint = async (url: string, name: string) => {
-      console.log(`[ProjectService] Testing ${name}...`);
+    for (const endpoint of endpoints) {
+      console.log(`[ProjectService] Testing endpoint ${endpoint.name} (${endpoint.path})...`);
+      
+      const url = `${PYTHON_API_URL}${endpoint.path}?${queryParams.toString()}`;
+      const safeUrl = url.replace(jwt, '[REDACTED]');
+      console.log(`[ProjectService] URL: ${safeUrl}`);
+      
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
         const response = await fetch(url, {
           method: "GET",
           headers: {
             "Content-Type": "application/json"
           },
-          // Add timeout for production
-          signal: AbortSignal.timeout(10000)
+          signal: controller.signal
         });
         
-        console.log(`[ProjectService] ${name} response status:`, response.status);
-        console.log(`[ProjectService] ${name} response headers:`, Object.fromEntries(response.headers.entries()));
+        clearTimeout(timeoutId);
+        
+        console.log(`[ProjectService] Endpoint ${endpoint.name} status: ${response.status}`);
         
         const responseText = await response.text();
-        console.log(`[ProjectService] ${name} response length:`, responseText.length);
         
-        if (responseText.length > 0) {
-          console.log(`[ProjectService] ${name} response preview:`, responseText.substring(0, 300));
+        if (response.ok) {
+          console.log(`[ProjectService] ✓ Endpoint ${endpoint.name} succeeded!`);
+          
+          try {
+            const responseData: RawProjectsResponse = JSON.parse(responseText);
+            console.log(`[ProjectService] Parsed ${responseData.projects?.length || 0} projects`);
+            
+            console.groupEnd();
+            return responseData;
+          } catch (parseError) {
+            console.error(`[ProjectService] Failed to parse response from ${endpoint.name}:`, parseError);
+            results.push({ endpoint: endpoint.name, status: 'parse_error', error: parseError });
+          }
+        } else {
+          console.log(`[ProjectService] Endpoint ${endpoint.name} failed with ${response.status}`);
+          results.push({ endpoint: endpoint.name, status: response.status, error: responseText.substring(0, 100) });
         }
         
-        return { response, responseText, success: response.ok };
-      } catch (error) {
-        console.error(`[ProjectService] ${name} fetch error:`, error);
-        return { error, success: false };
-      }
-    };
-    
-    // Try endpoint A first (/projects/raw)
-    console.log('[ProjectService] Trying endpoint A (/projects/raw)...');
-    const resultA = await testEndpoint(urlA, 'Endpoint A (/projects/raw)');
-    
-    if (resultA.success && resultA.response) {
-      console.log('[ProjectService] ✓ Endpoint A succeeded!');
-      
-      try {
-        const responseData: RawProjectsResponse = JSON.parse(resultA.responseText);
-        console.log('[ProjectService] Parsed response:', {
-          success: responseData.success,
-          count: responseData.count,
-          total_count: responseData.total_count,
-          projects_count: responseData.projects?.length || 0,
-          organization_name: responseData.organization_name,
-          include_deleted: responseData.include_deleted
-        });
+      } catch (fetchError) {
+        console.error(`[ProjectService] Fetch error for ${endpoint.name}:`, fetchError);
         
-        if (responseData.projects && responseData.projects.length > 0) {
-          console.log('[ProjectService] First project:', {
-            name: responseData.projects[0].name,
-            code: responseData.projects[0].code,
-            is_active: responseData.projects[0].is_active,
-            deleted_at: responseData.projects[0].deleted_at
-          });
+        // Type-safe error extraction
+        let errorMessage = 'Unknown error';
+        if (fetchError instanceof Error) {
+          errorMessage = fetchError.message;
+        } else if (typeof fetchError === 'string') {
+          errorMessage = fetchError;
+        } else if (fetchError && typeof fetchError === 'object' && 'message' in fetchError) {
+          errorMessage = String((fetchError as any).message);
         }
         
-        console.groupEnd();
-        return responseData;
-      } catch (parseError) {
-        console.error('[ProjectService] Error parsing JSON:', parseError);
-        console.error('[ProjectService] Raw response:', resultA.responseText.substring(0, 500));
+        results.push({ endpoint: endpoint.name, status: 'fetch_error', error: errorMessage });
       }
-    }
-    
-    // Try endpoint B (/projects-raw) if A failed
-    console.log('[ProjectService] Trying endpoint B (/projects-raw)...');
-    const resultB = await testEndpoint(urlB, 'Endpoint B (/projects-raw)');
-    
-    if (resultB.success && resultB.response) {
-      console.log('[ProjectService] ✓ Endpoint B succeeded!');
-      const responseData: RawProjectsResponse = JSON.parse(resultB.responseText);
-      console.groupEnd();
-      return responseData;
-    }
-    
-    // Try endpoint C (/projects) if both A and B failed
-    console.log('[ProjectService] Trying endpoint C (/projects)...');
-    const resultC = await testEndpoint(urlC, 'Endpoint C (/projects)');
-    
-    if (resultC.success && resultC.response) {
-      console.log('[ProjectService] ✓ Endpoint C succeeded!');
-      const responseData: RawProjectsResponse = JSON.parse(resultC.responseText);
-      console.groupEnd();
-      return responseData;
     }
     
     // All endpoints failed
     console.error('[ProjectService] ✗ All endpoints failed!');
-    console.error('[ProjectService] Summary of failures:');
-    console.error('[ProjectService] - Endpoint A (/projects/raw):', resultA.error || `Status: ${resultA.response?.status}`);
-    console.error('[ProjectService] - Endpoint B (/projects-raw):', resultB.error || `Status: ${resultB.response?.status}`);
-    console.error('[ProjectService] - Endpoint C (/projects):', resultC.error || `Status: ${resultC.response?.status}`);
+    console.error('[ProjectService] Results:', results);
     
     throw new Error(
-      `All API endpoints failed. Check: 1) Python API URL, 2) Endpoint path, 3) Token validity. ` +
+      `Failed to connect to Python API. Tried ${endpoints.length} endpoints. ` +
+      `Check: 1) API URL configuration, 2) Network connectivity, 3) CORS settings. ` +
       `Base URL: ${PYTHON_API_URL}`
     );
     
   } catch (error) {
     console.error('[ProjectService] === FATAL ERROR ===');
-    console.error('[ProjectService] Error type:', error?.constructor?.name);
-    console.error('[ProjectService] Error message:', error?.message);
-    console.error('[ProjectService] Error stack:', error?.stack);
+    
+    // Type-safe error handling
+    if (error instanceof Error) {
+      console.error('[ProjectService] Error type:', error.constructor.name);
+      console.error('[ProjectService] Error message:', error.message);
+      console.error('[ProjectService] Error stack:', error.stack);
+    } else {
+      console.error('[ProjectService] Unknown error type:', typeof error);
+      console.error('[ProjectService] Error value:', error);
+    }
     
     // Provide user-friendly error message
     let friendlyMessage = 'Failed to fetch projects';
     
-    if (error?.message?.includes('timeout')) {
-      friendlyMessage = 'Request timeout - Python API may be down or unreachable';
-    } else if (error?.message?.includes('network') || error?.name === 'TypeError') {
-      friendlyMessage = 'Network error - Cannot connect to Python API. Check CORS and network connectivity.';
-    } else if (error?.message?.includes('401')) {
-      friendlyMessage = 'Authentication failed - Token may be invalid or expired';
-    } else if (error?.message?.includes('404')) {
-      friendlyMessage = 'Endpoint not found - Check if Python API endpoint path is correct';
+    if (error instanceof Error) {
+      if (error.message.includes('timeout') || error.name === 'AbortError') {
+        friendlyMessage = 'Request timeout - Python API may be down or unreachable';
+      } else if (error.message.includes('network') || error.name === 'TypeError') {
+        friendlyMessage = 'Network error - Cannot connect to Python API';
+      } else if (error.message.includes('401')) {
+        friendlyMessage = 'Authentication failed - Token may be invalid or expired';
+      } else if (error.message.includes('404')) {
+        friendlyMessage = 'Endpoint not found - Check Python API configuration';
+      }
     }
     
     console.error('[ProjectService] Friendly error:', friendlyMessage);
     console.groupEnd();
     
-    throw new Error(`${friendlyMessage}: ${error?.message || 'Unknown error'}`);
+    // Re-throw with proper typing
+    if (error instanceof Error) {
+      throw new Error(`${friendlyMessage}: ${error.message}`);
+    } else {
+      throw new Error(friendlyMessage);
+    }
   }
 }
