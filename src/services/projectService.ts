@@ -306,106 +306,163 @@ export async function projectService(requestData: {
 export async function getRawProjects(
   params?: RawProjectsParams
 ): Promise<RawProjectsResponse> {
-  console.group('[ProjectService] Starting getRawProjects - PRODUCTION FIX');
+  console.group('[ProjectService] Starting getRawProjects - FIXED VERSION');
+  
   try {
-    // 1. Debug das URLs
+    console.log('[ProjectService] Parameters received:', params);
+    
+    // 1. Get the Python API URL (LTS US API)
     const PYTHON_API_URL = getPythonApiBaseUrl();
     console.log('[ProjectService] Python API URL:', PYTHON_API_URL);
     
-    // Debug do Next.js URL
-    const NEXTJS_URL = getNextJsBaseUrl();
-    console.log('[ProjectService] Next.js Base URL:', NEXTJS_URL);
-    
     if (!PYTHON_API_URL) {
-      console.error('[ProjectService] LTS_US_API_BASE_URL:', process.env.LTS_US_API_BASE_URL);
-      throw new Error("Python API URL not configured. Check LTS_US_API_BASE_URL");
+      console.error('[ProjectService] LTS_US_API_BASE_URL is not configured');
+      console.error('[ProjectService] Check your .env file for LTS_US_API_BASE_URL');
+      throw new Error("LTS_US_API_BASE_URL is not configured");
     }
-
-    // 2. Obter token
-    console.log('[ProjectService] Getting JWT token...');
+    
+    // 2. Get JWT token from Next.js API
+    console.log('[ProjectService] Step 1: Getting JWT token...');
     const tokenData = await getExternalToken();
     const jwt = tokenData.token || tokenData.access_token;
-
+    
     if (!jwt) {
-      console.error('[ProjectService] Token data received:', tokenData);
-      throw new Error("Failed to get JWT token");
+      console.error('[ProjectService] No JWT token found in response:', tokenData);
+      throw new Error("Failed to obtain JWT token from Next.js API");
     }
     
     console.log('[ProjectService] Token obtained, length:', jwt.length);
-
-    // 3. Construir query params CORRETAMENTE
+    console.log('[ProjectService] Token (first 20 chars):', jwt.substring(0, 20) + '...');
+    
+    // 3. Build query parameters correctly for Python API
     const queryParams = new URLSearchParams();
     
-    // TOKEN como query parameter (OBRIGATÓRIO pela API Python)
+    // CRITICAL: Token must be in query params for Python API
     queryParams.append('token', jwt);
     
-    // Organization (usar 'default' se não fornecido)
+    // Organization name (use 'default' if not provided)
     const orgName = params?.organization_name || 'default';
     queryParams.append('organization_name', orgName);
     
-    // Outros params
+    // Other parameters
     queryParams.append('limit', (params?.limit || 100).toString());
     queryParams.append('offset', (params?.offset || 0).toString());
     queryParams.append('include_deleted', (params?.include_deleted || false).toString());
-
-    // 4. Endpoint CORRETO: /projects-raw (igual sua rota Next.js)
-    const url = `${PYTHON_API_URL}/projects-raw?${queryParams.toString()}`;
     
-    // Log seguro (esconder token)
+    // 4. CORRECT ENDPOINT: /projects/raw (not projects-raw)
+    const url = `${PYTHON_API_URL}/projects/raw?${queryParams.toString()}`;
+    
+    // Safe log (hide token)
     const safeUrl = url.replace(jwt, '[REDACTED]');
-    console.log('[ProjectService] Calling Python API:', safeUrl);
-    console.log('[ProjectService] Query params:', {
+    console.log('[ProjectService] Step 2: Calling Python API:', safeUrl);
+    console.log('[ProjectService] Query parameters:', {
       organization_name: orgName,
       limit: params?.limit || 100,
       offset: params?.offset || 0,
       include_deleted: params?.include_deleted || false,
       has_token: true
     });
-
-    // 5. Fazer requisição SEM token no header (já está na query)
+    
+    // 5. Make request WITHOUT token in headers (it's already in query params)
     const response = await fetch(url, {
       method: "GET",
       headers: {
         "Content-Type": "application/json"
-        // NÃO enviar "token" no header
-      }
+        // DO NOT send "token" in header - Python API expects it in query params
+      },
+      cache: 'no-store' // Prevent caching issues
     });
     
-    console.log('[ProjectService] Response status:', response.status);
+    console.log('[ProjectService] Python API response status:', response.status);
+    console.log('[ProjectService] Python API response headers:', Object.fromEntries(response.headers.entries()));
     
     const responseText = await response.text();
-    console.log('[ProjectService] Response text (first 500 chars):', responseText.substring(0, 500));
-
-    if (!response.ok) {
-      // Se 404, tentar endpoint alternativo
-      if (response.status === 404) {
-        console.log('[ProjectService] /projects-raw not found, trying /projects...');
-        const altUrl = `${PYTHON_API_URL}/projects?${queryParams.toString()}`;
-        const altResponse = await fetch(altUrl, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" }
-        });
-        
-        if (!altResponse.ok) {
-          const altText = await altResponse.text();
-          throw new Error(`Both endpoints failed. Last error: ${response.status} - ${responseText.substring(0, 200)}`);
-        }
-        
-        const altData: RawProjectsResponse = await altResponse.json();
-        console.groupEnd();
-        return altData;
+    console.log('[ProjectService] Response text length:', responseText.length);
+    
+    // Log first 500 chars for debugging
+    if (responseText.length > 0) {
+      console.log('[ProjectService] Response preview (first 500 chars):', responseText.substring(0, 500));
+    }
+    
+    // Handle specific error responses
+    if (response.status === 401) {
+      console.error('[ProjectService] 401 Unauthorized - Token may be invalid or expired');
+      throw new Error("401 Unauthorized - Invalid or expired token");
+    }
+    
+    if (response.status === 404) {
+      console.error('[ProjectService] 404 Not Found - Endpoint may be incorrect');
+      console.error('[ProjectService] Full URL called:', safeUrl);
+      
+      // Try alternative endpoint: /projects (without /raw)
+      console.log('[ProjectService] Trying alternative endpoint: /projects');
+      const altUrl = `${PYTHON_API_URL}/projects?${queryParams.toString()}`;
+      const altResponse = await fetch(altUrl, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" }
+      });
+      
+      if (!altResponse.ok) {
+        const altText = await altResponse.text();
+        throw new Error(`Both endpoints failed. Last error: ${response.status} - ${responseText.substring(0, 200)}`);
       }
       
+      const altData: RawProjectsResponse = await altResponse.json();
+      console.log('[ProjectService] Alternative endpoint succeeded!');
+      console.groupEnd();
+      return altData;
+    }
+    
+    if (!response.ok) {
+      console.error(`[ProjectService] Python API error ${response.status}:`, responseText.substring(0, 500));
       throw new Error(`Python API error ${response.status}: ${responseText.substring(0, 200)}`);
     }
-
-    const responseData: RawProjectsResponse = JSON.parse(responseText);
-    console.log('[ProjectService] Success! Projects found:', responseData.projects?.length || 0);
-    console.groupEnd();
     
-    return responseData;
+    // 6. Parse successful response
+    console.log('[ProjectService] Step 3: Parsing successful response...');
+    try {
+      const responseData: RawProjectsResponse = JSON.parse(responseText);
+      
+      console.log('[ProjectService] Success! Response data:', {
+        success: responseData.success,
+        count: responseData.count,
+        total_count: responseData.total_count,
+        projects_count: responseData.projects?.length || 0,
+        limit: responseData.limit,
+        offset: responseData.offset,
+        organization_name: responseData.organization_name,
+        include_deleted: responseData.include_deleted
+      });
+      
+      // Log first project for debugging
+      if (responseData.projects && responseData.projects.length > 0) {
+        console.log('[ProjectService] First project sample:', {
+          id: responseData.projects[0].id,
+          name: responseData.projects[0].name,
+          code: responseData.projects[0].code,
+          is_active: responseData.projects[0].is_active,
+          deleted_at: responseData.projects[0].deleted_at
+        });
+      }
+      
+      console.groupEnd();
+      return responseData;
+      
+    } catch (parseError) {
+      console.error('[ProjectService] Error parsing JSON response:', parseError);
+      console.error('[ProjectService] Raw response that failed to parse:', responseText.substring(0, 1000));
+      throw new Error(`Failed to parse API response: ${parseError instanceof Error ? parseError.message : 'Unknown parsing error'}`);
+    }
+    
   } catch (error) {
     console.error('[ProjectService] Error in getRawProjects:', error);
+    
+    // Provide more specific error messages
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      console.error('[ProjectService] Network error - Check if Python API is running');
+      console.error('[ProjectService] PYTHON_API_URL might be incorrect or API is down');
+    }
+    
     console.groupEnd();
     throw error;
   }
