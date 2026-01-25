@@ -307,224 +307,60 @@ export async function getRawProjects(
   params?: RawProjectsParams
 ): Promise<RawProjectsResponse> {
   console.group('[ProjectService] Starting getRawProjects');
-  
   try {
-    // Step 1: Get Python API URL
     const PYTHON_API_URL = getPythonApiBaseUrl();
     console.log('[ProjectService] Python API URL:', PYTHON_API_URL);
-    
     if (!PYTHON_API_URL) {
-      console.error('[ProjectService] ERROR: Python API URL is not configured');
-      console.error('[ProjectService] LTS_US_API_BASE_URL:', process.env.LTS_US_API_BASE_URL);
-      throw new Error("Python API URL is not configured. Please check LTS_US_API_BASE_URL environment variable.");
+      throw new Error("Python API URL not configured");
     }
-
-    // Step 2: Get JWT token
-    console.log('[ProjectService] Getting JWT token from Next.js API...');
+    console.log('[ProjectService] Getting JWT token...');
     const tokenData = await getExternalToken();
     const jwt = tokenData.token || tokenData.access_token;
-    
+
     if (!jwt) {
-      console.error('[ProjectService] No JWT token received from auth endpoint');
-      console.error('[ProjectService] Token data received:', tokenData);
-      throw new Error("Failed to get JWT token from authentication endpoint");
+      throw new Error("Failed to get JWT token");
     }
-    
-    console.log('[ProjectService] JWT token obtained successfully');
-
-    // Step 3: Validate and prepare required parameters
-    // The Python API requires organization_name as a mandatory query parameter
-    let organization_name = params?.organization_name;
-    
-    if (!organization_name) {
-      console.warn('[ProjectService] organization_name parameter was not provided');
-      
-      // Try to get from environment variable or use a default
-      organization_name = process.env.DEFAULT_ORGANIZATION_NAME || 'default-organization';
-      console.log('[ProjectService] Using default organization_name:', organization_name);
-    }
-    
-    console.log('[ProjectService] Using organization:', organization_name);
-
-    // Step 4: Build query parameters according to Python API requirements
     const queryParams = new URLSearchParams();
-    
-    // MANDATORY: organization_name (required by Python API)
-    queryParams.append('organization_name', organization_name);
-    
-    // Optional parameters with defaults
-    const limit = params?.limit || 1000;
-    const offset = params?.offset || 0;
-    const include_deleted = params?.include_deleted || false;
-    
-    queryParams.append('limit', limit.toString());
-    queryParams.append('offset', offset.toString());
-    queryParams.append('include_deleted', include_deleted.toString());
+    if (params?.organization_name) {
+      queryParams.append('organization_name', params.organization_name);
+    }
+    queryParams.append('limit', (params?.limit || 1000).toString());
+    queryParams.append('offset', (params?.offset || 0).toString());
+    queryParams.append('include_deleted', (params?.include_deleted || false).toString());
 
-    // Step 5: Construct the full URL
-    // Based on the error, the endpoint appears to be '/projects' not '/projects-raw'
-    const endpoint = '/projects';
-    const fullUrl = `${PYTHON_API_URL}${endpoint}?${queryParams.toString()}`;
-    
-    console.log('[ProjectService] Calling Python API URL:', fullUrl);
-    console.log('[ProjectService] Query parameters:', {
-      organization_name,
-      limit,
-      offset,
-      include_deleted
-    });
-
-    // Step 6: Prepare headers
-    // The Python API expects 'token' in headers (not 'Authorization: Bearer')
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      "token": jwt  // MANDATORY: token header required by Python API
-    };
-
-    console.log('[ProjectService] Request headers:', {
-      'Content-Type': headers['Content-Type'],
-      'token': '[REDACTED]' // Hide token in logs
-    });
-
-    // Step 7: Make the API call
-    console.log('[ProjectService] Sending GET request to Python API...');
-    const response = await fetch(fullUrl, {
+    const url = `${PYTHON_API_URL}/projects-raw?${queryParams.toString()}`;
+    console.log('[ProjectService] Calling URL:', url);
+    const response = await fetch(url, {
       method: "GET",
-      headers: headers,
-      // Add timeout to prevent hanging requests
-      signal: AbortSignal.timeout(30000) // 30 seconds timeout
+      headers: {
+        "Content-Type": "application/json",
+        "token": jwt
+      }
     });
-
     console.log('[ProjectService] Response status:', response.status);
-    console.log('[ProjectService] Response status text:', response.statusText);
-
-    // Step 8: Handle the response
-    const responseText = await response.text();
-    console.log('[ProjectService] Response received, length:', responseText.length);
-    
-    if (responseText.length > 0) {
-      console.log('[ProjectService] First 500 characters of response:', responseText.substring(0, 500));
-    }
-
     if (!response.ok) {
-      console.error(`[ProjectService] Python API returned error ${response.status}:`, responseText);
-      
-      // Provide more specific error messages based on status code
-      switch (response.status) {
-        case 400:
-          throw new Error(`Bad request: ${responseText.substring(0, 200)}`);
-        case 401:
-          throw new Error(`Unauthorized: Invalid or expired token`);
-        case 403:
-          throw new Error(`Forbidden: Insufficient permissions`);
-        case 404:
-          throw new Error(`Endpoint not found: ${endpoint}`);
-        case 422:
-          throw new Error(`Validation error: ${responseText.substring(0, 200)}`);
-        default:
-          throw new Error(`Python API error ${response.status}: ${responseText.substring(0, 200)}`);
-      }
+      const errorText = await response.text();
+      throw new Error(`API error ${response.status}: ${errorText}`);
     }
-
-    // Step 9: Parse and validate the response
-    console.log('[ProjectService] Parsing JSON response...');
-    try {
-      const responseData: RawProjectsResponse = JSON.parse(responseText);
-      
-      // Validate the response structure
-      if (!responseData.success) {
-        console.warn('[ProjectService] API returned success: false', responseData);
-      }
-      
-      console.log('[ProjectService] Successfully retrieved projects:', {
-        success: responseData.success,
-        count: responseData.count,
-        total_count: responseData.total_count,
-        projects_count: responseData.projects?.length || 0,
-        organization_name: responseData.organization_name,
-        limit: responseData.limit,
-        offset: responseData.offset
-      });
-      
-      console.groupEnd();
-      return responseData;
-      
-    } catch (parseError) {
-      console.error('[ProjectService] Failed to parse JSON response:', parseError);
-      console.error('[ProjectService] Raw response that failed to parse:', responseText);
-      throw new Error(`Invalid JSON response from Python API`);
-    }
-    
+    const responseData: RawProjectsResponse = await response.json();
+    console.log('[ProjectService] Response received:', {
+      success: responseData.success,
+      count: responseData.count,
+      total_count: responseData.total_count,
+      projects_count: responseData.projects.length,
+      limit: responseData.limit,
+      offset: responseData.offset
+    });
+    console.groupEnd();
+    return responseData;
   } catch (error) {
     console.error('[ProjectService] Error in getRawProjects:', error);
-    
-    // Log additional details for specific error types
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      console.error('[ProjectService] Network error. Possible issues:');
-      console.error('  - Python API is not reachable from Vercel');
-      console.error('  - CORS policy blocking the request');
-      console.error('  - Network connectivity issue');
-    }
-    
-    if (error.name === 'TimeoutError') {
-      console.error('[ProjectService] Request timeout - Python API took too long to respond');
-    }
-    
     console.groupEnd();
     throw error;
   }
 }
-
-// Helper method for testing the connection
-export async function testPythonApiConnection(): Promise<{
-  success: boolean;
-  message: string;
-  details?: any;
-}> {
-  try {
-    const PYTHON_API_URL = getPythonApiBaseUrl();
-    
-    if (!PYTHON_API_URL) {
-      return {
-        success: false,
-        message: 'Python API URL is not configured',
-        details: { env: process.env.LTS_US_API_BASE_URL }
-      };
-    }
-
-    // Test basic connectivity
-    const testResponse = await fetch(PYTHON_API_URL, {
-      method: 'HEAD',
-      signal: AbortSignal.timeout(5000)
-    });
-
-    return {
-      success: testResponse.ok,
-      message: testResponse.ok ? 'Python API is reachable' : `Python API returned ${testResponse.status}`,
-      details: {
-        url: PYTHON_API_URL,
-        status: testResponse.status,
-        ok: testResponse.ok
-      }
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: error instanceof Error ? error.message : 'Unknown error',
-      details: { error }
-    };
-  }
-}
-
-// Updated service wrapper for compatibility
-export async function getRawProjectsService(params: RawProjectsParams): Promise<RawProjectsResponse> {
+export async function getRawProjectsService(params: RawProjectsParams): Promise<RawProjectsResponse>
+{
   console.log('[ProjectService] getRawProjectsService called with params:', params);
-  
-  // Ensure organization_name is always provided
-  if (!params.organization_name) {
-    console.warn('[ProjectService] organization_name not provided to service, using default');
-    params.organization_name = process.env.DEFAULT_ORGANIZATION_NAME || 'default-organization';
-  }
-  
   return getRawProjects(params);
 }
