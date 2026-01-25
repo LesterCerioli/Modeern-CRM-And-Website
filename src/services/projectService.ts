@@ -328,7 +328,7 @@ export async function getRawProjects(
     queryParams.append('offset', (params?.offset || 0).toString());
     queryParams.append('include_deleted', (params?.include_deleted || false).toString());
 
-    const url = `${PYTHON_API_URL}/projects-raw?${queryParams.toString()}`;
+    const url = `${PYTHON_API_URL}/projects?${queryParams.toString()}`;
     console.log('[ProjectService] Calling URL:', url);
     const response = await fetch(url, {
       method: "GET",
