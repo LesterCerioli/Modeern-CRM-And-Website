@@ -1207,3 +1207,375 @@ export const SuccessBadge = styled.div`
     align-self: flex-end;
   }
 `;
+
+export const Timestamp = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  
+  span:first-child {
+    color: #7f8c8d;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+  
+  span:last-child {
+    color: #2c3e50;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+`;
+export const ProjectTimestamps = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #f1f1f1;
+`;
+export const StatsContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 30px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+`;
+export const StatCard = styled.div<{ $type: 'total' | 'active' | 'deleted' }>`
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  border-top: 4px solid ${props => 
+    props.$type === 'total' ? '#3498db' : 
+    props.$type === 'active' ? '#2ecc71' : 
+    '#e74c3c'};
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  }
+  
+  h3 {
+    margin: 0 0 8px 0;
+    color: #2c3e50;
+    font-size: 2rem;
+    font-weight: 700;
+  }
+  
+  p {
+    margin: 0;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+`;
+export const LoadingSpinner = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #7f8c8d;
+  text-align: center;
+  
+  svg {
+    width: 48px;
+    height: 48px;
+    color: #3498db;
+    margin-bottom: 16px;
+    animation: spin 1s linear infinite;
+  }
+  
+  span {
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+export const ProjectDetails = styled.div`
+  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+export const ProjectDetailItem = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f1f1;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+export const AgileMethodBadge = styled.span<{ $method: 'Scrum' | 'SAFe' | 'Kanban' | 'Other' }>`
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: ${props => {
+    switch(props.$method) {
+      case 'Scrum': return 'rgba(52, 152, 219, 0.1)';
+      case 'SAFe': return 'rgba(155, 89, 182, 0.1)';
+      case 'Kanban': return 'rgba(46, 204, 113, 0.1)';
+      default: return 'rgba(127, 140, 141, 0.1)';
+    }
+  }};
+  color: ${props => {
+    switch(props.$method) {
+      case 'Scrum': return '#3498db';
+      case 'SAFe': return '#9b59b6';
+      case 'Kanban': return '#2ecc71';
+      default: return '#7f8c8d';
+    }
+  }};
+  border: 1px solid ${props => {
+    switch(props.$method) {
+      case 'Scrum': return 'rgba(52, 152, 219, 0.2)';
+      case 'SAFe': return 'rgba(155, 89, 182, 0.2)';
+      case 'Kanban': return 'rgba(46, 204, 113, 0.2)';
+      default: return 'rgba(127, 140, 141, 0.2)';
+    }
+  }};
+`;
+export const ProjectCardFooter = styled.div`
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #f1f1f1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+export const ProjectActions = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+export const ActionButton = styled.button<{ $variant: 'view' | 'edit' | 'delete' }>`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 1px solid ${props => {
+    switch(props.$variant) {
+      case 'view': return '#3498db';
+      case 'edit': return '#2ecc71';
+      case 'delete': return '#e74c3c';
+      default: return '#e1e5e9';
+    }
+  }};
+  background: ${props => {
+    switch(props.$variant) {
+      case 'view': return 'rgba(52, 152, 219, 0.1)';
+      case 'edit': return 'rgba(46, 204, 113, 0.1)';
+      case 'delete': return 'rgba(231, 76, 60, 0.1)';
+      default: return '#f8f9fa';
+    }
+  }};
+  color: ${props => {
+    switch(props.$variant) {
+      case 'view': return '#3498db';
+      case 'edit': return '#27ae60';
+      case 'delete': return '#e74c3c';
+      default: return '#2c3e50';
+    }
+  }};
+  
+  &:hover {
+    background: ${props => {
+      switch(props.$variant) {
+        case 'view': return '#3498db';
+        case 'edit': return '#2ecc71';
+        case 'delete': return '#e74c3c';
+        default: return '#e1e5e9';
+      }
+    }};
+    color: white;
+    transform: translateY(-1px);
+  }
+  
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+`;
+export const ProjectsSection = styled.section`
+  margin-top: 40px;
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  
+  @media (max-width: 768px) {
+    padding: 20px;
+    margin-top: 30px;
+  }
+`;
+export const ProjectsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+`;
+export const ProjectCard = styled.div<{ $status: 'active' | 'inactive' | 'deleted' }>`
+  background: ${props => props.$status === 'deleted' ? '#f8f9fa' : 'white'};
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  border-left: 4px solid ${props => 
+    props.$status === 'active' ? '#2ecc71' : 
+    props.$status === 'inactive' ? '#f39c12' : 
+    '#e74c3c'};
+  transition: all 0.3s ease;
+  position: relative;
+  opacity: ${props => props.$status === 'deleted' ? 0.8 : 1};
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  }
+`;
+export const ProjectDescription = styled.p`
+  color: #7f8c8d;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0 0 15px 0;
+`;
+export const ProjectCardHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+  gap: 15px;
+`;
+export const ProjectInfo = styled.div`
+  flex: 1;
+`;
+export const ProjectName = styled.h3`
+  margin: 0 0 5px 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.3;
+`;
+export const ProjectCode = styled.div`
+  color: #3498db;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: rgba(52, 152, 219, 0.1);
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: inline-block;
+`;
+export const ProjectStatusBadge = styled.span<{ $status: 'active' | 'inactive' | 'deleted' }>`
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: ${props => 
+    props.$status === 'active' ? 'rgba(46, 204, 113, 0.15)' : 
+    props.$status === 'inactive' ? 'rgba(243, 156, 18, 0.15)' : 
+    'rgba(231, 76, 60, 0.15)'};
+  color: ${props => 
+    props.$status === 'active' ? '#27ae60' : 
+    props.$status === 'inactive' ? '#f39c12' : 
+    '#e74c3c'};
+  border: 1px solid ${props => 
+    props.$status === 'active' ? 'rgba(46, 204, 113, 0.3)' : 
+    props.$status === 'inactive' ? 'rgba(243, 156, 18, 0.3)' : 
+    'rgba(231, 76, 60, 0.3)'};
+`;
+export const SectionHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+`;
+export const SectionControls = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    flex-direction: column;
+    gap: 10px;
+  }
+`;
+export const FilterSelect = styled.select`
+  padding: 10px 16px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #2c3e50;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s;
+  min-width: 150px;
+  
+  &:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  }
+`;
+export const RefreshButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  
+  &:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+  }
+  
+  &:disabled {
+    background: #95a5a6;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+`;

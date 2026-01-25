@@ -34,6 +34,38 @@ export interface ProjectFormData {
   ownerUser: string;
 }
 
+export interface RawProject {
+  id: string;
+  organization_id: string;
+  name: string;
+  code: string;
+  description: string;
+  owner_id: string;
+  template_agile_method: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string;
+}
+
+export interface RawProjectsResponse {
+  success: boolean;
+  count: number;
+  total_count: number;
+  projects: RawProject[];
+  limit: number;
+  offset: number;
+  organization_name: string;
+  include_deleted: boolean;
+}
+
+export interface RawProjectsParams {
+  organization_name?: string;
+  limit?: number;
+  offset?: number;
+  include_deleted?: boolean;
+}
+
 
 function isServer() {
   return typeof window === 'undefined';
@@ -111,9 +143,9 @@ export async function createProject(
     console.log('[ProjectService] NEXT_PUBLIC_API_BASE_URL (Next.js API):', NEXTJS_API_URL);
     
     if (!PYTHON_API_URL) {
-      console.error('[ProjectService] LTS_US_API_BASE_URL não está configurada');
-      console.error('[ProjectService] Configure a variável LTS_US_API_BASE_URL no .env');
-      throw new Error("LTS_US_API_BASE_URL não está configurada");
+      console.error('[ProjectService] LTS_US_API_BASE_URL it is not configured');
+      console.error('[ProjectService] Configure variable LTS_US_API_BASE_URL on .env');
+      throw new Error("LTS_US_API_BASE_URL it is not configured");
     }
 
     
@@ -270,4 +302,65 @@ export async function projectService(requestData: {
     console.groupEnd();
     throw error;
   }
+}
+export async function getRawProjects(
+  params?: RawProjectsParams
+): Promise<RawProjectsResponse> {
+  console.group('[ProjectService] Starting getRawProjects');
+  try {
+    const PYTHON_API_URL = getPythonApiBaseUrl();
+    console.log('[ProjectService] Python API URL:', PYTHON_API_URL);
+    if (!PYTHON_API_URL) {
+      throw new Error("Python API URL not configured");
+    }
+    console.log('[ProjectService] Getting JWT token...');
+    const tokenData = await getExternalToken();
+    const jwt = tokenData.token || tokenData.access_token;
+
+    if (!jwt) {
+      throw new Error("Failed to get JWT token");
+    }
+    const queryParams = new URLSearchParams();
+    if (params?.organization_name) {
+      queryParams.append('organization_name', params.organization_name);
+    }
+    queryParams.append('limit', (params?.limit || 1000).toString());
+    queryParams.append('offset', (params?.offset || 0).toString());
+    queryParams.append('include_deleted', (params?.include_deleted || false).toString());
+
+    const url = `${PYTHON_API_URL}/projects-raw?${queryParams.toString()}`;
+    console.log('[ProjectService] Calling URL:', url);
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "token": jwt
+      }
+    });
+    console.log('[ProjectService] Response status:', response.status);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API error ${response.status}: ${errorText}`);
+    }
+    const responseData: RawProjectsResponse = await response.json();
+    console.log('[ProjectService] Response received:', {
+      success: responseData.success,
+      count: responseData.count,
+      total_count: responseData.total_count,
+      projects_count: responseData.projects.length,
+      limit: responseData.limit,
+      offset: responseData.offset
+    });
+    console.groupEnd();
+    return responseData;
+  } catch (error) {
+    console.error('[ProjectService] Error in getRawProjects:', error);
+    console.groupEnd();
+    throw error;
+  }
+}
+export async function getRawProjectsService(params: RawProjectsParams): Promise<RawProjectsResponse>
+{
+  console.log('[ProjectService] getRawProjectsService called with params:', params);
+  return getRawProjects(params);
 }
