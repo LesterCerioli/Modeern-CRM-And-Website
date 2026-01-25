@@ -308,21 +308,14 @@ export async function getRawProjects(
 ): Promise<RawProjectsResponse> {
   console.group('[ProjectService] Starting getRawProjects');
   try {
-    // Debug: Verificar todas as variáveis de ambiente relevantes
-    console.log('[ProjectService] Environment variables check:', {
-      LTS_US_API_BASE_URL: process.env.LTS_US_API_BASE_URL,
-      NEXT_PUBLIC_LTS_US_API_BASE_URL: process.env.NEXT_PUBLIC_LTS_US_API_BASE_URL,
-      NODE_ENV: process.env.NODE_ENV
-    });
-
+    // Debug: Verificar variáveis de ambiente
+    console.log('[ProjectService] LTS_US_API_BASE_URL:', process.env.LTS_US_API_BASE_URL);
+    
     const PYTHON_API_URL = getPythonApiBaseUrl();
-    console.log('[ProjectService] Python API URL from getPythonApiBaseUrl():', PYTHON_API_URL);
+    console.log('[ProjectService] Python API URL:', PYTHON_API_URL);
     
     if (!PYTHON_API_URL) {
-      console.error('[ProjectService] ERROR: Python API URL is not configured');
-      console.error('[ProjectService] Available env vars:', Object.keys(process.env).filter(key => 
-        key.includes('LTS') || key.includes('API') || key.includes('BASE_URL')
-      ));
+      console.error('[ProjectService] ERROR: Python API URL not configured');
       throw new Error("Python API URL not configured. Check LTS_US_API_BASE_URL env variable.");
     }
 
@@ -331,11 +324,11 @@ export async function getRawProjects(
     const jwt = tokenData.token || tokenData.access_token;
 
     if (!jwt) {
-      console.error('[ProjectService] No JWT token received:', tokenData);
+      console.error('[ProjectService] No JWT token received');
       throw new Error("Failed to get JWT token from auth endpoint");
     }
     
-    console.log('[ProjectService] JWT token obtained (first 20 chars):', jwt.substring(0, 20) + '...');
+    console.log('[ProjectService] JWT token obtained');
 
     // Construir query parameters
     const queryParams = new URLSearchParams();
@@ -344,7 +337,6 @@ export async function getRawProjects(
       queryParams.append('organization_name', params.organization_name);
     }
     
-    // Usar valores padrão se não fornecidos
     const limit = params?.limit || 1000;
     const offset = params?.offset || 0;
     const include_deleted = params?.include_deleted || false;
@@ -353,110 +345,88 @@ export async function getRawProjects(
     queryParams.append('offset', offset.toString());
     queryParams.append('include_deleted', include_deleted.toString());
 
-    // IMPORTANTE: Verificar o endpoint correto
-    // Se /projects-raw não existir, tente /projects ou outro endpoint
-    const endpoint = '/projects-raw'; // Altere se necessário
+    // Usar um único endpoint - verifique qual é o correto para sua API
+    // Se /projects-raw não funcionar, tente /projects
+    const endpoint = '/projects-raw';
     const url = `${PYTHON_API_URL}${endpoint}?${queryParams.toString()}`;
     
-    console.log('[ProjectService] Full URL to call:', url);
-    console.log('[ProjectService] Query params:', {
-      organization_name: params?.organization_name,
-      limit,
-      offset,
-      include_deleted
-    });
+    console.log('[ProjectService] Calling URL:', url);
 
-    // Tentar diferentes formatos de headers
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
-
-    // Tente diferentes formatos de autenticação
-    const authHeaders = [
-      { "Authorization": `Bearer ${jwt}` },
-      { "token": jwt },
-      { "x-access-token": jwt },
-      { "X-Access-Token": jwt }
-    ];
-
-    let lastError: Error | null = null;
+    // Método 1: Primeira tentativa com Authorization header (mais comum)
+    let response: Response;
+    let responseData: RawProjectsResponse;
     
-    // Tentar diferentes formatos de headers
-    for (const authHeader of authHeaders) {
-      try {
-        console.log('[ProjectService] Trying with auth header:', Object.keys(authHeader)[0]);
-        
-        const response = await fetch(url, {
-          method: "GET",
-          headers: {
-            ...headers,
-            ...authHeader
-          },
-          // Adicionar timeout para evitar espera infinita
-          signal: AbortSignal.timeout(30000) // 30 segundos timeout
-        });
-        
-        console.log('[ProjectService] Response status:', response.status);
-        console.log('[ProjectService] Response headers:', Object.fromEntries(response.headers.entries()));
-        
-        const responseText = await response.text();
-        console.log('[ProjectService] Response text (first 500 chars):', responseText.substring(0, 500));
-        
-        if (!response.ok) {
-          console.error(`[ProjectService] API error ${response.status}:`, responseText);
-          
-          if (response.status === 404) {
-            // Endpoint não encontrado, talvez tentar outro
-            throw new Error(`Endpoint ${endpoint} not found (404)`);
-          }
-          
-          if (response.status === 401 || response.status === 403) {
-            // Token inválido ou formato de header incorreto
-            continue; // Tenta próximo formato de header
-          }
-          
-          throw new Error(`API error ${response.status}: ${responseText.substring(0, 200)}`);
+    try {
+      console.log('[ProjectService] Trying with Authorization header...');
+      response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${jwt}`
         }
-        
-        // Tentar parsear JSON
-        try {
-          const responseData = JSON.parse(responseText);
-          console.log('[ProjectService] Response parsed successfully:', {
-            success: responseData.success,
-            count: responseData.count,
-            total_count: responseData.total_count,
-            projects_count: responseData.projects?.length || 0,
-            limit: responseData.limit,
-            offset: responseData.offset
-          });
-          
-          console.groupEnd();
-          return responseData as RawProjectsResponse;
-          
-        } catch (parseError) {
-          console.error('[ProjectService] Error parsing JSON:', parseError);
-          throw new Error(`Invalid JSON response: ${responseText.substring(0, 200)}`);
+      });
+    } catch (authError) {
+      console.log('[ProjectService] Authorization header failed, trying with token header...');
+      // Método 2: Tentar com header "token"
+      response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "token": jwt
         }
-        
-      } catch (error) {
-        lastError = error instanceof Error ? error : new Error(String(error));
-        console.log('[ProjectService] Attempt failed:', lastError.message);
-        // Continue para próxima tentativa
-      }
+      });
     }
     
-    // Se todas as tentativas falharem
-    throw lastError || new Error("All authentication header attempts failed");
+    console.log('[ProjectService] Response status:', response.status);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[ProjectService] API error ${response.status}:`, errorText.substring(0, 200));
+      
+      if (response.status === 404) {
+        // Tentar endpoint diferente se 404
+        console.log('[ProjectService] Trying /projects endpoint instead...');
+        const alternativeUrl = `${PYTHON_API_URL}/projects?${queryParams.toString()}`;
+        
+        response = await fetch(alternativeUrl, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${jwt}`
+          }
+        });
+        
+        if (!response.ok) {
+          const altErrorText = await response.text();
+          throw new Error(`API error ${response.status}: ${altErrorText.substring(0, 200)}`);
+        }
+      } else {
+        throw new Error(`API error ${response.status}: ${errorText.substring(0, 200)}`);
+      }
+    }
+
+    const responseText = await response.text();
+    console.log('[ProjectService] Response received, length:', responseText.length);
+    
+    try {
+      responseData = JSON.parse(responseText);
+      console.log('[ProjectService] Response parsed successfully:', {
+        success: responseData.success,
+        count: responseData.count,
+        total_count: responseData.total_count,
+        projects_count: responseData.projects?.length || 0
+      });
+      
+      console.groupEnd();
+      return responseData;
+    } catch (parseError) {
+      console.error('[ProjectService] Error parsing JSON:', parseError);
+      console.error('[ProjectService] Raw response:', responseText.substring(0, 500));
+      throw new Error(`Invalid JSON response from API`);
+    }
     
   } catch (error) {
     console.error('[ProjectService] Error in getRawProjects:', error);
-    
-    // Adicionar mais informações de debug
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      console.error('[ProjectService] Network/fetch error. Possible CORS or connectivity issue.');
-      console.error('[ProjectService] Verify Python API is running and accessible from Vercel.');
-    }
-    
     console.groupEnd();
     throw error;
   }
