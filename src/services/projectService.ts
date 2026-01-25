@@ -307,57 +307,71 @@ export async function getRawProjects(
   params?: RawProjectsParams
 ): Promise<RawProjectsResponse> {
   console.group('[ProjectService] Starting getRawProjects');
+  
   try {
-    // Debug: Verificar variáveis de ambiente
-    console.log('[ProjectService] LTS_US_API_BASE_URL:', process.env.LTS_US_API_BASE_URL);
-    
+    console.log('[ProjectService] Step 1: Getting Python API URL...');
     const PYTHON_API_URL = getPythonApiBaseUrl();
     console.log('[ProjectService] Python API URL:', PYTHON_API_URL);
     
     if (!PYTHON_API_URL) {
-      console.error('[ProjectService] ERROR: Python API URL not configured');
-      throw new Error("Python API URL not configured. Check LTS_US_API_BASE_URL env variable.");
+      console.error('[ProjectService] ERROR: LTS_US_API_BASE_URL is not configured');
+      console.error('[ProjectService] Current env:', {
+        LTS_US_API_BASE_URL: process.env.LTS_US_API_BASE_URL,
+        NEXT_PUBLIC_LTS_US_API_BASE_URL: process.env.NEXT_PUBLIC_LTS_US_API_BASE_URL
+      });
+      throw new Error("Python API URL not configured");
     }
 
-    console.log('[ProjectService] Getting JWT token...');
+    console.log('[ProjectService] Step 2: Getting JWT token...');
     const tokenData = await getExternalToken();
+    console.log('[ProjectService] Token data received:', { 
+      hasToken: !!tokenData.token,
+      hasAccessToken: !!tokenData.access_token,
+      keys: Object.keys(tokenData)
+    });
+    
     const jwt = tokenData.token || tokenData.access_token;
-
+    
     if (!jwt) {
-      console.error('[ProjectService] No JWT token received');
-      throw new Error("Failed to get JWT token from auth endpoint");
+      console.error('[ProjectService] No JWT token in response:', tokenData);
+      throw new Error("Failed to get JWT token - empty response");
     }
     
-    console.log('[ProjectService] JWT token obtained');
+    console.log('[ProjectService] Token obtained (first 10 chars):', jwt.substring(0, 10) + '...');
 
-    // Construir query parameters
+    console.log('[ProjectService] Step 3: Building query parameters...');
     const queryParams = new URLSearchParams();
     
     if (params?.organization_name) {
       queryParams.append('organization_name', params.organization_name);
+      console.log('[ProjectService] Organization filter:', params.organization_name);
     }
     
-    const limit = params?.limit || 1000;
+    const limit = params?.limit || 100;
     const offset = params?.offset || 0;
     const include_deleted = params?.include_deleted || false;
     
     queryParams.append('limit', limit.toString());
     queryParams.append('offset', offset.toString());
     queryParams.append('include_deleted', include_deleted.toString());
+    
+    console.log('[ProjectService] Query params:', {
+      limit, offset, include_deleted
+    });
 
-    // Usar um único endpoint - verifique qual é o correto para sua API
-    // Se /projects-raw não funcionar, tente /projects
-    const endpoint = '/projects-raw';
+    // IMPORTANTE: Verifique qual endpoint sua API Python usa
+    // Pode ser '/projects' ou '/raw-projects' ou outro
+    const endpoint = '/projects'; // Tente este primeiro
     const url = `${PYTHON_API_URL}${endpoint}?${queryParams.toString()}`;
     
-    console.log('[ProjectService] Calling URL:', url);
+    console.log('[ProjectService] Step 4: Calling Python API:', url);
 
-    // Método 1: Primeira tentativa com Authorization header (mais comum)
+    // Tente diferentes headers de autenticação
     let response: Response;
-    let responseData: RawProjectsResponse;
     
     try {
-      console.log('[ProjectService] Trying with Authorization header...');
+      // Tentativa 1: Com Authorization header
+      console.log('[ProjectService] Attempt 1: With Authorization header');
       response = await fetch(url, {
         method: "GET",
         headers: {
@@ -365,9 +379,9 @@ export async function getRawProjects(
           "Authorization": `Bearer ${jwt}`
         }
       });
-    } catch (authError) {
-      console.log('[ProjectService] Authorization header failed, trying with token header...');
-      // Método 2: Tentar com header "token"
+    } catch (error) {
+      console.log('[ProjectService] Attempt 1 failed, trying with token header...');
+      // Tentativa 2: Com header "token"
       response = await fetch(url, {
         method: "GET",
         headers: {
@@ -376,57 +390,69 @@ export async function getRawProjects(
         }
       });
     }
-    
+
     console.log('[ProjectService] Response status:', response.status);
-    
+    console.log('[ProjectService] Response headers:', {
+      'content-type': response.headers.get('content-type'),
+      'content-length': response.headers.get('content-length')
+    });
+
+    const responseText = await response.text();
+    console.log('[ProjectService] Response text length:', responseText.length);
+    console.log('[ProjectService] First 500 chars of response:', responseText.substring(0, 500));
+
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[ProjectService] API error ${response.status}:`, errorText.substring(0, 200));
+      console.error(`[ProjectService] Python API error ${response.status}:`, responseText);
       
       if (response.status === 404) {
-        // Tentar endpoint diferente se 404
-        console.log('[ProjectService] Trying /projects endpoint instead...');
-        const alternativeUrl = `${PYTHON_API_URL}/projects?${queryParams.toString()}`;
-        
-        response = await fetch(alternativeUrl, {
+        console.log('[ProjectService] Trying /raw-projects endpoint...');
+        // Tentar endpoint alternativo
+        const altUrl = `${PYTHON_API_URL}/raw-projects?${queryParams.toString()}`;
+        const altResponse = await fetch(altUrl, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${jwt}`
+            "token": jwt
           }
         });
         
-        if (!response.ok) {
-          const altErrorText = await response.text();
-          throw new Error(`API error ${response.status}: ${altErrorText.substring(0, 200)}`);
+        if (!altResponse.ok) {
+          const altText = await altResponse.text();
+          throw new Error(`Both endpoints failed. Last error: ${response.status} - ${responseText.substring(0, 200)}`);
         }
-      } else {
-        throw new Error(`API error ${response.status}: ${errorText.substring(0, 200)}`);
+        
+        const altData: RawProjectsResponse = await altResponse.json();
+        console.groupEnd();
+        return altData;
       }
+      
+      throw new Error(`Python API error ${response.status}: ${responseText.substring(0, 200)}`);
     }
 
-    const responseText = await response.text();
-    console.log('[ProjectService] Response received, length:', responseText.length);
-    
+    console.log('[ProjectService] Step 5: Parsing response...');
     try {
-      responseData = JSON.parse(responseText);
+      const responseData: RawProjectsResponse = JSON.parse(responseText);
       console.log('[ProjectService] Response parsed successfully:', {
         success: responseData.success,
         count: responseData.count,
         total_count: responseData.total_count,
-        projects_count: responseData.projects?.length || 0
+        projects_count: responseData.projects?.length || 0,
+        organization_name: responseData.organization_name
       });
       
       console.groupEnd();
       return responseData;
     } catch (parseError) {
-      console.error('[ProjectService] Error parsing JSON:', parseError);
-      console.error('[ProjectService] Raw response:', responseText.substring(0, 500));
+      console.error('[ProjectService] JSON parse error:', parseError);
+      console.error('[ProjectService] Raw response that failed to parse:', responseText);
       throw new Error(`Invalid JSON response from API`);
     }
     
   } catch (error) {
-    console.error('[ProjectService] Error in getRawProjects:', error);
+    console.error('[ProjectService] Fatal error in getRawProjects:', error);
+    if (error instanceof Error) {
+      console.error('[ProjectService] Error stack:', error.stack);
+    }
     console.groupEnd();
     throw error;
   }
