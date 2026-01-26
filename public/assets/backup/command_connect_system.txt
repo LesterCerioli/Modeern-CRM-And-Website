@@ -1,0 +1,19 @@
+ while ($true) {
+>>     try {
+>>         $response = Invoke-RestMethod -Uri $url -Method Post -Headers $headers -Body $body
+>>         $timestamp = Get-Date -Format "HH:mm:ss"
+>>         Write-Host "[$timestamp] Requisição #$counter - Token obtido: $($response.token.Substring(0, 20))..." -ForegroundColor Green
+>>
+>>         # Salva o token em um arquivo (opcional)
+>>         $response | ConvertTo-Json | Out-File -FilePath "last_token.json" -Force
+>>
+>>     } catch {
+>>         $timestamp = Get-Date -Format "HH:mm:ss"
+>>         Write-Host "[$timestamp] Erro: $($_.Exception.Message)" -ForegroundColor Red
+>>     }
+>>
+>>     $counter++
+>>
+>>     # Aguarda 30 segundos antes da próxima requisição
+>>     Start-Sleep -Seconds 30
+>> }
