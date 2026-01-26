@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@elastic/elasticsearch": "^9.0.2",
+    "@hello-pangea/dnd": "^18.0.1",
     "@hookform/resolvers": "^3.3.1",
     "@radix-ui/react-select": "^2.2.6",
     "@types/node": "20.4.8",

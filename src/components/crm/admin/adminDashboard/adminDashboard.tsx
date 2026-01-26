@@ -41,7 +41,7 @@ import UserComponent from '../user/user';
 interface DashboardState {
   collapsed: boolean;
   activeNav: string;
-  showITDashboard: boolean; // Novo estado
+  showITDashboard: boolean; 
 }
 
 const AdminDashboard: React.FC = () => {
@@ -61,12 +61,12 @@ const AdminDashboard: React.FC = () => {
     setState(prev => ({ ...prev, activeNav, showITDashboard: false }));
   };
 
-  // Função para mostrar o IT Dashboard
+  
   const showITDashboard = () => {
     setState(prev => ({ ...prev, showITDashboard: true, activeNav: 'it' }));
   };
 
-  // Função para voltar ao dashboard principal
+  
   const goBackToMainDashboard = () => {
     setState(prev => ({ ...prev, showITDashboard: false, activeNav: 'dashboard' }));
   };
@@ -140,7 +140,7 @@ const AdminDashboard: React.FC = () => {
 
   
   const renderContent = () => {
-    // Se showITDashboard for true, renderize o ITDashboard
+    
     if (state.showITDashboard) {
       return (
         <div style={{ 
@@ -230,7 +230,7 @@ const AdminDashboard: React.FC = () => {
             <h2 style={{ color: '#2c3e50', marginBottom: '15px' }}>Department Management</h2>
             <DashboardGrid>
               {dashboardCards.map((card, index) => {
-                // Verifica se é o card IT
+                
                 if (card.title === 'IT') {
                   return (
                     <DashboardCard 
