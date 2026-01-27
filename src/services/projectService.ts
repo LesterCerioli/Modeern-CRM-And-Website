@@ -81,7 +81,7 @@ function getNextJsBaseUrl() {
   
   return process.env.NEXT_PUBLIC_API_BASE_URL || 
          process.env.NEXTAUTH_URL || 
-         'https://lts-us-website.vercel.app';
+         'http://localhost:3000';
 }
 
 
