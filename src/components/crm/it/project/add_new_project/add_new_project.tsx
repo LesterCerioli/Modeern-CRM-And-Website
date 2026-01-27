@@ -94,15 +94,15 @@ const ProjectForm: React.FC = () => {
             if (organizationFilter !== 'all') {
                 params.append('organization_name', organizationFilter);
             }
-            
-            const response = await fetch(`/api/projects/raw?${params.toString()}`);
-            
+            const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+            const apiUrl = `${apiBaseUrl}/api/projects/raw?${params.toString()}`;
+            console.log('[ProjectForm] Fetching projects from:', apiUrl); // Para depuração
+            const response = await fetch(apiUrl);
+
             if (!response.ok) {
                 throw new Error(`Failed to fetch projects: ${response.status}`);
             }
-            
             const data: RawProjectsResponse = await response.json();
-            
             if (data.success) {
                 setProjects(data.projects);
             } else {
@@ -110,14 +110,14 @@ const ProjectForm: React.FC = () => {
             }
         } catch (err) {
             setProjectsError(err instanceof Error ? err.message : 'Failed to load projects');
-            console.error('Error fetching projects:', err);
+            console.error('[ProjectForm] Error fetching projects:', err);
         } finally {
             setLoadingProjects(false);
             setRefreshing(false);
         }
     }, [includeDeleted, organizationFilter]);
 
-    // Carregar projetos ao montar o componente
+    
     useEffect(() => {
         fetchProjects();
     }, [fetchProjects]);

@@ -7,8 +7,8 @@ export function middleware(request: NextRequest) {
   
   
   const allowedOrigins = [
-    'http://localhost:8000',
-    'http://localhost:3000'
+    'https://lts-us-api-python.onrender.com',
+    'https://lts-us-website.vercel.app'
   ]
   
   
