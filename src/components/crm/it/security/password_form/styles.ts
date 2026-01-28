@@ -1,21 +1,21 @@
-// /src/components/crm/it/security/password_form/styles.ts
+// styles.ts - VERSÃO CORRIGIDA
+'use client';
+
 import styled from 'styled-components';
 
-export const CredentialSection = styled.section`
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+export const CredentialSection = styled.div`
+  background: white;
+  border-radius: 12px;
   padding: 25px;
-  margin: 20px 0;
-  max-width: 1000px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 `;
 
 export const SectionTitle = styled.h2`
-  font-size: 20px;
+  font-size: 22px;
   color: #2c3e50;
   margin-bottom: 25px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #eee;
+  font-weight: 600;
 `;
 
 export const FormContainer = styled.form`
@@ -102,6 +102,12 @@ export const PrimaryButton = styled.button`
   &:active {
     transform: translateY(0);
   }
+  
+  &:disabled {
+    background-color: #95a5a6;
+    cursor: not-allowed;
+    transform: none;
+  }
 `;
 
 export const SecondaryButton = styled.button`
@@ -122,6 +128,12 @@ export const SecondaryButton = styled.button`
   
   &:active {
     transform: translateY(0);
+  }
+  
+  &:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+    transform: none;
   }
 `;
 
@@ -193,7 +205,16 @@ export const ActionButton = styled.button`
   &:hover {
     background-color: #f0f0f0;
   }
+  
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
 `;
+
+interface NotificationBannerProps {
+  $type: 'success' | 'error' | 'warning' | 'info' | null;
+}
 
 export const AddButton = styled(ActionButton)`
   color: #27ae60;
@@ -202,4 +223,209 @@ export const AddButton = styled(ActionButton)`
 
 export const DeleteButton = styled(ActionButton)`
   color: #e74c3c;
+`;
+
+export const EmptyState = styled.div`
+  background: white;
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+  color: #7f8c8d;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  
+  h4 {
+    font-size: 18px;
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+  }
+  
+  p {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+`;
+
+export const FilterSelect = styled.select`
+  padding: 10px 16px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #2c3e50;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s;
+  min-width: 150px;
+  
+  &:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  }
+`;
+
+export const LoadingSpinner = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #7f8c8d;
+  text-align: center;
+  
+  svg {
+    width: 48px;
+    height: 48px;
+    color: #3498db;
+    margin-bottom: 16px;
+    animation: spin 1s linear infinite;
+  }
+  
+  span {
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+
+export const RefreshButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  
+  &:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+  }
+  
+  &:disabled {
+    background: #95a5a6;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+`;
+
+export const NotificationBanner = styled.div<NotificationBannerProps>`
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  margin-bottom: 25px;
+  border-radius: 10px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  gap: 12px;
+  animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+  
+  background: ${props => {
+    switch (props.$type) {
+      case 'success': return 'linear-gradient(135deg, rgba(46, 204, 113, 0.15), rgba(46, 204, 113, 0.05))';
+      case 'error': return 'linear-gradient(135deg, rgba(231, 76, 60, 0.15), rgba(231, 76, 60, 0.05))';
+      case 'warning': return 'linear-gradient(135deg, rgba(243, 156, 18, 0.15), rgba(243, 156, 18, 0.05))';
+      case 'info': return 'linear-gradient(135deg, rgba(52, 152, 219, 0.15), rgba(52, 152, 219, 0.05))';
+      default: return 'linear-gradient(135deg, rgba(52, 152, 219, 0.15), rgba(52, 152, 219, 0.05))';
+    }
+  }};
+  
+  border-left: 4px solid ${props => {
+    switch (props.$type) {
+      case 'success': return '#2ecc71';
+      case 'error': return '#e74c3c';
+      case 'warning': return '#f39c12';
+      case 'info': return '#3498db';
+      default: return '#3498db';
+    }
+  }};
+  
+  svg {
+    width: 20px;
+    height: 20px;
+    color: ${props => {
+      switch (props.$type) {
+        case 'success': return '#2ecc71';
+        case 'error': return '#e74c3c';
+        case 'warning': return '#f39c12';
+        case 'info': return '#3498db';
+        default: return '#3498db';
+      }
+    }};
+  }
+  
+  span {
+    color: ${props => {
+      switch (props.$type) {
+        case 'success': return '#27ae60';
+        case 'error': return '#c0392b';
+        case 'warning': return '#d35400';
+        case 'info': return '#2980b9';
+        default: return '#2c3e50';
+      }
+    }};
+  }
+  
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+`;
+
+// Adicionando o ErrorMessage que estava faltando
+export const ErrorMessage = styled.div`
+  background: linear-gradient(135deg, rgba(231, 76, 60, 0.15), rgba(231, 76, 60, 0.05));
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  color: #c0392b;
+  
+  h4 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #e74c3c;
+  }
+  
+  p {
+    margin: 0 0 15px 0;
+  }
+  
+  button {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    
+    &:hover {
+      background: #c0392b;
+    }
+  }
 `;

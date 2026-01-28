@@ -33,15 +33,18 @@ import {
   FiBriefcase,
   FiTarget,
   FiShield,
-  FiCpu 
+  FiCpu,
+  FiLock 
 } from 'react-icons/fi';
 import ITDashboard from '@/components/crm/it/itDashboard/itDashboard'
 import UserComponent from '../user/user';
+import CredentialManagement from '@/components/crm/it/security/password_form/passwordForm';
 
 interface DashboardState {
   collapsed: boolean;
   activeNav: string;
-  showITDashboard: boolean; // Novo estado
+  showITDashboard: boolean; 
+  showSecurityDashboard: boolean;
 }
 
 const AdminDashboard: React.FC = () => {
@@ -49,7 +52,8 @@ const AdminDashboard: React.FC = () => {
   const [state, setState] = useState<DashboardState>({
     collapsed: false,
     activeNav: 'dashboard',
-    showITDashboard: false
+    showITDashboard: false,
+    showSecurityDashboard: false
   });
 
   
@@ -58,17 +62,41 @@ const AdminDashboard: React.FC = () => {
   };
 
   const setActiveNav = (activeNav: string) => {
-    setState(prev => ({ ...prev, activeNav, showITDashboard: false }));
+    setState(prev => ({ 
+      ...prev, 
+      activeNav, 
+      showITDashboard: false,
+      showSecurityDashboard: false 
+    }));
   };
 
-  // Função para mostrar o IT Dashboard
+  
   const showITDashboard = () => {
-    setState(prev => ({ ...prev, showITDashboard: true, activeNav: 'it' }));
+    setState(prev => ({ 
+      ...prev, 
+      showITDashboard: true, 
+      showSecurityDashboard: false,
+      activeNav: 'it' 
+    }));
   };
 
-  // Função para voltar ao dashboard principal
+  const showSecurityDashboard = () => {
+    setState(prev => ({
+      ...prev, 
+      showSecurityDashboard: true,
+      showITDashboard: false,
+      activeNav: 'security' 
+    }));
+  };
+
+  
   const goBackToMainDashboard = () => {
-    setState(prev => ({ ...prev, showITDashboard: false, activeNav: 'dashboard' }));
+    setState(prev => ({ 
+      ...prev, 
+      showSecurityDashboard: false,
+      showITDashboard: false,
+      activeNav: 'dashboard' 
+    }));
   };
 
   
@@ -116,7 +144,12 @@ const AdminDashboard: React.FC = () => {
     {
       title: 'IT',
       description: 'Information Technology Dashboard',
-      icon: <FiCpu size={28} /> // Ícone específico para IT
+      icon: <FiCpu size={28} /> 
+    },
+    {
+      title: 'Security',
+      description: 'Access & Credential Management',
+      icon: <FiLock size={28} /> 
     }
   ];
 
@@ -140,7 +173,7 @@ const AdminDashboard: React.FC = () => {
 
   
   const renderContent = () => {
-    // Se showITDashboard for true, renderize o ITDashboard
+    
     if (state.showITDashboard) {
       return (
         <div style={{ 
@@ -173,6 +206,42 @@ const AdminDashboard: React.FC = () => {
             <FiChevronLeft /> Back to Dashboard
           </button>
           <ITDashboard />
+        </div>
+      );
+    }
+    
+    if (state.showSecurityDashboard) {
+      return (
+        <div style={{ 
+          backgroundColor: 'white',
+          borderRadius: '12px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+          minHeight: 'calc(100vh - 100px)',
+          position: 'relative'
+        }}>
+          <button
+            onClick={goBackToMainDashboard}
+            style={{
+              backgroundColor: '#3498db',
+              color: 'white',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: '600',
+              margin: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              zIndex: 100
+            }}
+          >
+            <FiChevronLeft /> Back to Dashboard
+          </button>
+          <CredentialManagement />
         </div>
       );
     }
@@ -230,7 +299,8 @@ const AdminDashboard: React.FC = () => {
             <h2 style={{ color: '#2c3e50', marginBottom: '15px' }}>Department Management</h2>
             <DashboardGrid>
               {dashboardCards.map((card, index) => {
-                // Verifica se é o card IT
+                
+                
                 if (card.title === 'IT') {
                   return (
                     <DashboardCard 
@@ -273,6 +343,51 @@ const AdminDashboard: React.FC = () => {
                     </DashboardCard>
                   );
                 }
+                
+                
+                if (card.title === 'Security') {
+                  return (
+                    <DashboardCard 
+                      key={index} 
+                      onClick={showSecurityDashboard}
+                      style={{ 
+                        cursor: 'pointer',
+                        position: 'relative',
+                        transition: 'all 0.3s ease',
+                        border: '2px solid transparent'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-5px)';
+                        e.currentTarget.style.borderColor = '#e74c3c';
+                        e.currentTarget.style.boxShadow = '0 8px 25px rgba(231, 76, 60, 0.2)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.borderColor = 'transparent';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
+                    >
+                      {card.icon}
+                      <h3>{card.title}</h3>
+                      <p>{card.description}</p>
+                      <div style={{
+                        position: 'absolute',
+                        top: '10px',
+                        right: '10px',
+                        backgroundColor: '#e74c3c',
+                        color: 'white',
+                        fontSize: '10px',
+                        fontWeight: '600',
+                        padding: '2px 8px',
+                        borderRadius: '10px',
+                        textTransform: 'uppercase'
+                      }}>
+                        Click
+                      </div>
+                    </DashboardCard>
+                  );
+                }
+                
                 
                 return (
                   <DashboardCard key={index}>

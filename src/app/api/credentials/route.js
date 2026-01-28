@@ -1,35 +1,47 @@
-
 import { NextResponse } from "next/server";
-import { createProject } from "@/services/projectService"; 
+import { credentialService } from "@/services/credentialService";
 
 export async function POST(request) {
   try {
     const body = await request.json();
 
-    const { token, organization_name, name, code, description, owner_username, template_agile_method, settings } = body;
+    const { 
+      token, 
+      organization_name, 
+      type, 
+      email, 
+      password, 
+      description 
+    } = body;
 
-    if (!token || !organization_name || !name || !code || !description || !owner_username || !template_agile_method) {
+    if (!token || !organization_name || !type || !email || !password || !description) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    
-    const projectFormData = {
-      projectName: name,
-      agileMethodology: template_agile_method,
-      projectCode: code,
-      organization: organization_name,
-      description: description,
-      ownerUser: owner_username
-    };
+    console.log('[API Credentials POST] Dados recebidos:', {
+      organization_name,
+      type,
+      email,
+      password: '***' + password.slice(-3),
+      description
+    });
 
-    const result = await createProject(projectFormData);
+    const result = await credentialService({
+      token,
+      organization_name,
+      type,
+      email,
+      password,
+      description
+    });
 
     return NextResponse.json(result, { status: 200 });
   } catch (err) {
     const message = err.message || "Unknown error";
+    console.error('[API Credentials POST] Error:', message);
 
     if (message.includes("401")) {
       return NextResponse.json(
