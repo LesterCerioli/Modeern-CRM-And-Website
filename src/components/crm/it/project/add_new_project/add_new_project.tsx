@@ -122,14 +122,14 @@ const ProjectForm: React.FC = () => {
         fetchProjects();
     }, [fetchProjects]);
 
-    // Recarregar projetos quando um novo projeto é criado
+    
     useEffect(() => {
         if (submitSuccess) {
             fetchProjects();
         }
     }, [submitSuccess, fetchProjects]);
 
-    // Funções do formulário (mantidas do código original)
+    
     async function getJwtToken(): Promise<string> {
         const response = await fetch("/api/auth/token", {
             method: "POST",
