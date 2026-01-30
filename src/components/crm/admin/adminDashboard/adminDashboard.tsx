@@ -39,101 +39,7 @@ import {
 import ITDashboard from '@/components/crm/it/itDashboard/itDashboard';
 import UserComponent from '../user/user';
 import CredentialManagement from '@/components/crm/it/security/password_form/passwordForm';
-
-
-const AccountingAreasPlaceholder = () => {
-  return (
-    <div style={{ 
-      padding: '40px',
-      backgroundColor: 'white',
-      borderRadius: '12px',
-      minHeight: 'calc(100vh - 200px)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center'
-    }}>
-      <FiFileText size={80} color="#2ecc71" />
-      <h1 style={{ color: '#2c3e50', marginTop: '20px', marginBottom: '10px' }}>
-        Accounting Areas Dashboard
-      </h1>
-      <p style={{ color: '#7f8c8d', fontSize: '1.1rem', maxWidth: '600px', textAlign: 'center', marginBottom: '30px' }}>
-        Manage all accounting functions including NFSe registration, tax documentation, 
-        financial reporting, and compliance management.
-      </p>
-      
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(2, 1fr)', 
-        gap: '20px', 
-        width: '100%',
-        maxWidth: '800px',
-        marginTop: '20px'
-      }}>
-        <div style={{ 
-          padding: '20px',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '8px',
-          borderLeft: '4px solid #3498db'
-        }}>
-          <h3 style={{ color: '#3498db', marginBottom: '10px' }}>NFSe Registration</h3>
-          <p style={{ color: '#7f8c8d', fontSize: '0.9rem' }}>
-            Electronic invoices registry and management
-          </p>
-        </div>
-        
-        <div style={{ 
-          padding: '20px',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '8px',
-          borderLeft: '4px solid #e74c3c'
-        }}>
-          <h3 style={{ color: '#e74c3c', marginBottom: '10px' }}>Legalization</h3>
-          <p style={{ color: '#7f8c8d', fontSize: '0.9rem' }}>
-            Document legalization and certification
-          </p>
-        </div>
-        
-        <div style={{ 
-          padding: '20px',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '8px',
-          borderLeft: '4px solid #2ecc71'
-        }}>
-          <h3 style={{ color: '#2ecc71', marginBottom: '10px' }}>Tax Documentation</h3>
-          <p style={{ color: '#7f8c8d', fontSize: '0.9rem' }}>
-            Tax compliance and documentation management
-          </p>
-        </div>
-        
-        <div style={{ 
-          padding: '20px',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '8px',
-          borderLeft: '4px solid #f39c12'
-        }}>
-          <h3 style={{ color: '#f39c12', marginBottom: '10px' }}>Accounting</h3>
-          <p style={{ color: '#7f8c8d', fontSize: '0.9rem' }}>
-            General accounting and bookkeeping functions
-          </p>
-        </div>
-      </div>
-      
-      <div style={{ 
-        marginTop: '40px',
-        padding: '20px',
-        backgroundColor: '#e8f4fc',
-        borderRadius: '8px',
-        width: '100%',
-        maxWidth: '800px'
-      }}>
-        <p style={{ color: '#3498db', margin: 0, textAlign: 'center' }}>
-          <strong>Note:</strong> This is a temporary placeholder. The full AccountingAreas component will be loaded once the import issue is resolved.
-        </p>
-      </div>
-    </div>
-  );
-};
+import AccountingAreas from '@/components/crm/accounting/accountingAreas/accountingAreas'; 
 
 interface DashboardState {
   collapsed: boolean;
@@ -228,11 +134,7 @@ const AdminDashboard: React.FC = () => {
       description: 'Accounting and bookkeeping',
       icon: <FiFileText size={28} /> 
     },
-    { 
-      title: 'Tax', 
-      description: 'Tax management and compliance',
-      icon: <FiBarChart2 size={28} /> 
-    },
+    
     { 
       title: 'Marketing', 
       description: 'Marketing campaigns and analytics',
@@ -311,8 +213,8 @@ const AdminDashboard: React.FC = () => {
           >
             <FiChevronLeft /> Back to Dashboard
           </button>
-          {/* Usando placeholder em vez do componente problemático */}
-          <AccountingAreasPlaceholder />
+          
+          <AccountingAreas />
         </div>
       );
     }
@@ -443,7 +345,7 @@ const AdminDashboard: React.FC = () => {
             <DashboardGrid>
               {dashboardCards.map((card, index) => {
                 
-                // Card para IT
+                
                 if (card.title === 'IT') {
                   return (
                     <DashboardCard 
@@ -487,7 +389,7 @@ const AdminDashboard: React.FC = () => {
                   );
                 }
                 
-                // Card para Security
+                
                 if (card.title === 'Security') {
                   return (
                     <DashboardCard 
@@ -530,8 +432,7 @@ const AdminDashboard: React.FC = () => {
                     </DashboardCard>
                   );
                 }
-                
-                // Card para Accounting
+                                
                 if (card.title === 'Accounting') {
                   return (
                     <DashboardCard 
@@ -574,8 +475,7 @@ const AdminDashboard: React.FC = () => {
                     </DashboardCard>
                   );
                 }
-                
-                // Cards regulares
+                                
                 return (
                   <DashboardCard key={index}>
                     {card.icon}
