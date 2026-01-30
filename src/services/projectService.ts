@@ -81,7 +81,7 @@ function getNextJsBaseUrl() {
   
   return process.env.NEXT_PUBLIC_API_BASE_URL || 
          process.env.NEXTAUTH_URL || 
-         'http://localhost:3000';
+         'https://lts-us-website.vercel.app/';
 }
 
 
@@ -309,7 +309,7 @@ export async function getRawProjects(
   console.group('[ProjectService] getRawProjects - DIRECT PYTHON API CALL');
   
   try {
-    // 1. Get Python API base URL
+    
     const PYTHON_API_URL = getPythonApiBaseUrl();
     console.log('[ProjectService] Python API URL:', PYTHON_API_URL);
     
@@ -317,21 +317,18 @@ export async function getRawProjects(
       throw new Error("LTS_US_API_BASE_URL is not configured. Check your environment variables.");
     }
     
-    // 2. Get JWT token directly from Python API (NOT from Next.js API)
+    
     console.log('[ProjectService] Step 1: Getting JWT token from Python API...');
     const jwt = await getPythonApiToken();
     console.log('[ProjectService] Token obtained. Length:', jwt.length);
     console.log('[ProjectService] Token preview:', jwt.substring(0, 30) + '...');
-    
-    // 3. Build query parameters EXACTLY like your curl
+        
     console.log('[ProjectService] Step 2: Building request parameters...');
     const queryParams = new URLSearchParams();
-    
-    // REQUIRED: organization_name parameter
+        
     const organizationName = params?.organization_name || 'Lucas Technology Service';
     queryParams.append('organization_name', organizationName);
-    
-    // Optional parameters (with defaults matching your curl)
+        
     const limit = params?.limit || 1000;
     const offset = params?.offset || 0;
     const includeDeleted = params?.include_deleted || false;
@@ -346,13 +343,11 @@ export async function getRawProjects(
       offset,
       include_deleted: includeDeleted
     });
-    
-    // 4. Build the URL EXACTLY like your curl
+        
     const url = `${PYTHON_API_URL}/projects-raw?${queryParams.toString()}`;
     const safeUrl = url.replace(jwt, '[REDACTED]');
     console.log('[ProjectService] Step 3: Calling Python API:', safeUrl);
-    
-    // 5. Make request EXACTLY like your curl
+        
     const response = await fetch(url, {
       method: "GET",
       headers: {
@@ -381,8 +376,7 @@ export async function getRawProjects(
       
       throw new Error(`Python API error ${response.status}: ${responseText.substring(0, 200)}`);
     }
-    
-    // 6. Parse the response
+        
     console.log('[ProjectService] Step 4: Parsing response...');
     try {
       const responseData: RawProjectsResponse = JSON.parse(responseText);
@@ -415,8 +409,7 @@ export async function getRawProjects(
     
   } catch (error) {
     console.error('[ProjectService] Error in getRawProjects:', error);
-    
-    // Provide specific error messages
+        
     if (error instanceof TypeError && error.message.includes('fetch')) {
       console.error('[ProjectService] Network error - Check if Python API is reachable:', getPythonApiBaseUrl());
     }
@@ -426,7 +419,7 @@ export async function getRawProjects(
   }
 }
 
-// NEW FUNCTION: Get token directly from Python API (matching your curl)
+
 async function getPythonApiToken(): Promise<string> {
   console.group('[ProjectService] getPythonApiToken - DIRECT TO Python API');
   
@@ -476,7 +469,7 @@ async function getPythonApiToken(): Promise<string> {
   }
 }
 
-// Helper function to validate environment
+
 function validatePythonApiConfig(): void {
   const PYTHON_API_URL = getPythonApiBaseUrl();
   

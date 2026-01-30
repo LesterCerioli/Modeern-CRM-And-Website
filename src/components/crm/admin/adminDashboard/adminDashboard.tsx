@@ -36,15 +36,111 @@ import {
   FiCpu,
   FiLock 
 } from 'react-icons/fi';
-import ITDashboard from '@/components/crm/it/itDashboard/itDashboard'
+import ITDashboard from '@/components/crm/it/itDashboard/itDashboard';
 import UserComponent from '../user/user';
 import CredentialManagement from '@/components/crm/it/security/password_form/passwordForm';
+
+
+const AccountingAreasPlaceholder = () => {
+  return (
+    <div style={{ 
+      padding: '40px',
+      backgroundColor: 'white',
+      borderRadius: '12px',
+      minHeight: 'calc(100vh - 200px)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
+      <FiFileText size={80} color="#2ecc71" />
+      <h1 style={{ color: '#2c3e50', marginTop: '20px', marginBottom: '10px' }}>
+        Accounting Areas Dashboard
+      </h1>
+      <p style={{ color: '#7f8c8d', fontSize: '1.1rem', maxWidth: '600px', textAlign: 'center', marginBottom: '30px' }}>
+        Manage all accounting functions including NFSe registration, tax documentation, 
+        financial reporting, and compliance management.
+      </p>
+      
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(2, 1fr)', 
+        gap: '20px', 
+        width: '100%',
+        maxWidth: '800px',
+        marginTop: '20px'
+      }}>
+        <div style={{ 
+          padding: '20px',
+          backgroundColor: '#f8f9fa',
+          borderRadius: '8px',
+          borderLeft: '4px solid #3498db'
+        }}>
+          <h3 style={{ color: '#3498db', marginBottom: '10px' }}>NFSe Registration</h3>
+          <p style={{ color: '#7f8c8d', fontSize: '0.9rem' }}>
+            Electronic invoices registry and management
+          </p>
+        </div>
+        
+        <div style={{ 
+          padding: '20px',
+          backgroundColor: '#f8f9fa',
+          borderRadius: '8px',
+          borderLeft: '4px solid #e74c3c'
+        }}>
+          <h3 style={{ color: '#e74c3c', marginBottom: '10px' }}>Legalization</h3>
+          <p style={{ color: '#7f8c8d', fontSize: '0.9rem' }}>
+            Document legalization and certification
+          </p>
+        </div>
+        
+        <div style={{ 
+          padding: '20px',
+          backgroundColor: '#f8f9fa',
+          borderRadius: '8px',
+          borderLeft: '4px solid #2ecc71'
+        }}>
+          <h3 style={{ color: '#2ecc71', marginBottom: '10px' }}>Tax Documentation</h3>
+          <p style={{ color: '#7f8c8d', fontSize: '0.9rem' }}>
+            Tax compliance and documentation management
+          </p>
+        </div>
+        
+        <div style={{ 
+          padding: '20px',
+          backgroundColor: '#f8f9fa',
+          borderRadius: '8px',
+          borderLeft: '4px solid #f39c12'
+        }}>
+          <h3 style={{ color: '#f39c12', marginBottom: '10px' }}>Accounting</h3>
+          <p style={{ color: '#7f8c8d', fontSize: '0.9rem' }}>
+            General accounting and bookkeeping functions
+          </p>
+        </div>
+      </div>
+      
+      <div style={{ 
+        marginTop: '40px',
+        padding: '20px',
+        backgroundColor: '#e8f4fc',
+        borderRadius: '8px',
+        width: '100%',
+        maxWidth: '800px'
+      }}>
+        <p style={{ color: '#3498db', margin: 0, textAlign: 'center' }}>
+          <strong>Note:</strong> This is a temporary placeholder. The full AccountingAreas component will be loaded once the import issue is resolved.
+        </p>
+      </div>
+    </div>
+  );
+};
 
 interface DashboardState {
   collapsed: boolean;
   activeNav: string;
   showITDashboard: boolean; 
   showSecurityDashboard: boolean;
+  showAccountingDashboard: boolean; 
 }
 
 const AdminDashboard: React.FC = () => {
@@ -53,10 +149,10 @@ const AdminDashboard: React.FC = () => {
     collapsed: false,
     activeNav: 'dashboard',
     showITDashboard: false,
-    showSecurityDashboard: false
+    showSecurityDashboard: false,
+    showAccountingDashboard: false
   });
 
-  
   const setCollapsed = (collapsed: boolean) => {
     setState(prev => ({ ...prev, collapsed }));
   };
@@ -66,16 +162,17 @@ const AdminDashboard: React.FC = () => {
       ...prev, 
       activeNav, 
       showITDashboard: false,
-      showSecurityDashboard: false 
+      showSecurityDashboard: false,
+      showAccountingDashboard: false
     }));
   };
 
-  
   const showITDashboard = () => {
     setState(prev => ({ 
       ...prev, 
       showITDashboard: true, 
       showSecurityDashboard: false,
+      showAccountingDashboard: false,
       activeNav: 'it' 
     }));
   };
@@ -85,21 +182,31 @@ const AdminDashboard: React.FC = () => {
       ...prev, 
       showSecurityDashboard: true,
       showITDashboard: false,
+      showAccountingDashboard: false,
       activeNav: 'security' 
     }));
   };
 
-  
+  const showAccountingDashboard = () => {
+    setState(prev => ({ 
+      ...prev, 
+      showAccountingDashboard: true,
+      showITDashboard: false,
+      showSecurityDashboard: false,
+      activeNav: 'accounting' 
+    }));
+  };
+
   const goBackToMainDashboard = () => {
     setState(prev => ({ 
       ...prev, 
       showSecurityDashboard: false,
       showITDashboard: false,
+      showAccountingDashboard: false,
       activeNav: 'dashboard' 
     }));
   };
 
-  
   const dashboardCards = [
     { 
       title: 'Administrative', 
@@ -171,8 +278,44 @@ const AdminDashboard: React.FC = () => {
     { id: 'support', label: 'Support', icon: <FiHelpCircle /> }
   ];
 
-  
   const renderContent = () => {
+    
+    if (state.showAccountingDashboard) {
+      return (
+        <div style={{ 
+          backgroundColor: 'white',
+          borderRadius: '12px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+          minHeight: 'calc(100vh - 100px)',
+          position: 'relative'
+        }}>
+          <button 
+            onClick={goBackToMainDashboard}
+            style={{
+              backgroundColor: '#3498db',
+              color: 'white',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: '600',
+              margin: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              zIndex: 100
+            }}
+          >
+            <FiChevronLeft /> Back to Dashboard
+          </button>
+          {/* Usando placeholder em vez do componente problemático */}
+          <AccountingAreasPlaceholder />
+        </div>
+      );
+    }
     
     if (state.showITDashboard) {
       return (
@@ -300,7 +443,7 @@ const AdminDashboard: React.FC = () => {
             <DashboardGrid>
               {dashboardCards.map((card, index) => {
                 
-                
+                // Card para IT
                 if (card.title === 'IT') {
                   return (
                     <DashboardCard 
@@ -344,7 +487,7 @@ const AdminDashboard: React.FC = () => {
                   );
                 }
                 
-                
+                // Card para Security
                 if (card.title === 'Security') {
                   return (
                     <DashboardCard 
@@ -388,7 +531,51 @@ const AdminDashboard: React.FC = () => {
                   );
                 }
                 
+                // Card para Accounting
+                if (card.title === 'Accounting') {
+                  return (
+                    <DashboardCard 
+                      key={index} 
+                      onClick={showAccountingDashboard}
+                      style={{ 
+                        cursor: 'pointer',
+                        position: 'relative',
+                        transition: 'all 0.3s ease',
+                        border: '2px solid transparent'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-5px)';
+                        e.currentTarget.style.borderColor = '#2ecc71';
+                        e.currentTarget.style.boxShadow = '0 8px 25px rgba(46, 204, 113, 0.2)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.borderColor = 'transparent';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
+                    >
+                      {card.icon}
+                      <h3>{card.title}</h3>
+                      <p>{card.description}</p>
+                      <div style={{
+                        position: 'absolute',
+                        top: '10px',
+                        right: '10px',
+                        backgroundColor: '#2ecc71',
+                        color: 'white',
+                        fontSize: '10px',
+                        fontWeight: '600',
+                        padding: '2px 8px',
+                        borderRadius: '10px',
+                        textTransform: 'uppercase'
+                      }}>
+                        Click
+                      </div>
+                    </DashboardCard>
+                  );
+                }
                 
+                // Cards regulares
                 return (
                   <DashboardCard key={index}>
                     {card.icon}
@@ -413,11 +600,9 @@ const AdminDashboard: React.FC = () => {
         );
 
       case 'users':
-        
         return <UserComponent />;
 
       default:
-        
         return (
           <div style={{ 
             padding: '40px',
@@ -454,7 +639,6 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <DashboardLayout>
-      {/* Sidebar */}
       <Sidebar $collapsed={state.collapsed}>
         <LogoContainer $collapsed={state.collapsed}>
           <br />
@@ -489,7 +673,6 @@ const AdminDashboard: React.FC = () => {
         </UserInfo>
       </Sidebar>
 
-      {/* Main Content */}
       <MainContent $collapsed={state.collapsed}>
         {renderContent()}
       </MainContent>

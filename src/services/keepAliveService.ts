@@ -1,8 +1,8 @@
 import { getExternalToken } from "./externalApi";
 
 const MINUTE_IN_MS = 60 * 1000;
-const INTERVAL_MINUTES = 4; // IMPORTANT: Change to 4 minutes! (Render sleeps after 15)
-const REQUEST_TIMEOUT = 60000; // Increase to 60 seconds (Render takes time to wake up)
+const INTERVAL_MINUTES = 4; 
+const REQUEST_TIMEOUT = 60000; 
 const MAX_RETRIES = 3;
 
 export async function startApiKeepAlive() {
@@ -49,9 +49,9 @@ export async function startApiKeepAlive() {
                 const errorMessage = error instanceof Error ? error.message : String(error);
                 console.error(`❌ [Keep-Alive] ERROR in attempt ${retryCount + 1}: ${errorMessage}`);
                 
-                // If there are still retries, try again
+                
                 if (retryCount < MAX_RETRIES - 1) {
-                    const retryDelay = 10000; // 10 seconds
+                    const retryDelay = 10000; 
                     console.log(`🔄 Trying again in ${retryDelay/1000} seconds...`);
                     await new Promise(resolve => setTimeout(resolve, retryDelay));
                     return pingApi(retryCount + 1).then(resolve);
