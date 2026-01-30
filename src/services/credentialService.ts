@@ -65,7 +65,7 @@ function getNextJsBaseUrl() {
   }
   return process.env.NEXT_PUBLIC_API_BASE_URL || 
          process.env.NEXTAUTH_URL || 
-         'https://lts-us-website.vercel.app';
+         'http://localhost:3000';
 }
 
 function getPythonApiBaseUrl() {
@@ -99,7 +99,7 @@ async function getExternalToken() {
   console.log('[CredentialService] Token obtained successfully');
   console.log('[CredentialService] Token data keys:', Object.keys(tokenData));
   
-  return tokenData; // ✅ Retorna OBJETO completo, não apenas string
+  return tokenData; 
 }
 
 export async function createCredential(
