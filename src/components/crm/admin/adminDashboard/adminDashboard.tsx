@@ -39,7 +39,8 @@ import {
 import ITDashboard from '@/components/crm/it/itDashboard/itDashboard';
 import UserComponent from '../user/user';
 import CredentialManagement from '@/components/crm/it/security/password_form/passwordForm';
-import AccountingAreas from '@/components/crm/accounting/accountingAreas/accountingAreas'; 
+import AccountingAreas from '@/components/crm/accounting/accountingAreas/accountingAreas';
+import CreatePost from '@/components/blog/post_creator/create_post'; 
 
 interface DashboardState {
   collapsed: boolean;
@@ -47,6 +48,7 @@ interface DashboardState {
   showITDashboard: boolean; 
   showSecurityDashboard: boolean;
   showAccountingDashboard: boolean; 
+  showMarketingDashboard: boolean; // Novo estado para Marketing
 }
 
 const AdminDashboard: React.FC = () => {
@@ -56,7 +58,8 @@ const AdminDashboard: React.FC = () => {
     activeNav: 'dashboard',
     showITDashboard: false,
     showSecurityDashboard: false,
-    showAccountingDashboard: false
+    showAccountingDashboard: false,
+    showMarketingDashboard: false // Inicialize como false
   });
 
   const setCollapsed = (collapsed: boolean) => {
@@ -69,7 +72,8 @@ const AdminDashboard: React.FC = () => {
       activeNav, 
       showITDashboard: false,
       showSecurityDashboard: false,
-      showAccountingDashboard: false
+      showAccountingDashboard: false,
+      showMarketingDashboard: false // Resetar ao mudar de navegação
     }));
   };
 
@@ -79,6 +83,7 @@ const AdminDashboard: React.FC = () => {
       showITDashboard: true, 
       showSecurityDashboard: false,
       showAccountingDashboard: false,
+      showMarketingDashboard: false,
       activeNav: 'it' 
     }));
   };
@@ -89,6 +94,7 @@ const AdminDashboard: React.FC = () => {
       showSecurityDashboard: true,
       showITDashboard: false,
       showAccountingDashboard: false,
+      showMarketingDashboard: false,
       activeNav: 'security' 
     }));
   };
@@ -99,7 +105,20 @@ const AdminDashboard: React.FC = () => {
       showAccountingDashboard: true,
       showITDashboard: false,
       showSecurityDashboard: false,
+      showMarketingDashboard: false,
       activeNav: 'accounting' 
+    }));
+  };
+
+  // Nova função para mostrar o dashboard de Marketing
+  const showMarketingDashboard = () => {
+    setState(prev => ({ 
+      ...prev, 
+      showMarketingDashboard: true,
+      showITDashboard: false,
+      showSecurityDashboard: false,
+      showAccountingDashboard: false,
+      activeNav: 'marketing' 
     }));
   };
 
@@ -109,6 +128,7 @@ const AdminDashboard: React.FC = () => {
       showSecurityDashboard: false,
       showITDashboard: false,
       showAccountingDashboard: false,
+      showMarketingDashboard: false, // Resetar também o marketing
       activeNav: 'dashboard' 
     }));
   };
@@ -181,6 +201,43 @@ const AdminDashboard: React.FC = () => {
   ];
 
   const renderContent = () => {
+    // Adicione a condição para mostrar o CreatePost
+    if (state.showMarketingDashboard) {
+      return (
+        <div style={{ 
+          backgroundColor: 'white',
+          borderRadius: '12px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+          minHeight: 'calc(100vh - 100px)',
+          position: 'relative'
+        }}>
+          <button 
+            onClick={goBackToMainDashboard}
+            style={{
+              backgroundColor: '#9b59b6', // Cor roxa para Marketing
+              color: 'white',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: '600',
+              margin: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              zIndex: 100
+            }}
+          >
+            <FiChevronLeft /> Back to Dashboard
+          </button>
+          
+          <CreatePost />
+        </div>
+      );
+    }
     
     if (state.showAccountingDashboard) {
       return (
@@ -345,7 +402,51 @@ const AdminDashboard: React.FC = () => {
             <DashboardGrid>
               {dashboardCards.map((card, index) => {
                 
+                // Card de Marketing
+                if (card.title === 'Marketing') {
+                  return (
+                    <DashboardCard 
+                      key={index} 
+                      onClick={showMarketingDashboard}
+                      style={{ 
+                        cursor: 'pointer',
+                        position: 'relative',
+                        transition: 'all 0.3s ease',
+                        border: '2px solid transparent'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-5px)';
+                        e.currentTarget.style.borderColor = '#9b59b6'; // Cor roxa para Marketing
+                        e.currentTarget.style.boxShadow = '0 8px 25px rgba(155, 89, 182, 0.2)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.borderColor = 'transparent';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
+                    >
+                      {card.icon}
+                      <h3>{card.title}</h3>
+                      <p>{card.description}</p>
+                      <div style={{
+                        position: 'absolute',
+                        top: '10px',
+                        right: '10px',
+                        backgroundColor: '#9b59b6',
+                        color: 'white',
+                        fontSize: '10px',
+                        fontWeight: '600',
+                        padding: '2px 8px',
+                        borderRadius: '10px',
+                        textTransform: 'uppercase'
+                      }}>
+                        Click
+                      </div>
+                    </DashboardCard>
+                  );
+                }
                 
+                // Card de IT
                 if (card.title === 'IT') {
                   return (
                     <DashboardCard 
@@ -389,7 +490,7 @@ const AdminDashboard: React.FC = () => {
                   );
                 }
                 
-                
+                // Card de Security
                 if (card.title === 'Security') {
                   return (
                     <DashboardCard 
@@ -433,6 +534,7 @@ const AdminDashboard: React.FC = () => {
                   );
                 }
                                 
+                // Card de Accounting
                 if (card.title === 'Accounting') {
                   return (
                     <DashboardCard 
@@ -476,6 +578,7 @@ const AdminDashboard: React.FC = () => {
                   );
                 }
                                 
+                // Cards padrão (sem comportamento especial)
                 return (
                   <DashboardCard key={index}>
                     {card.icon}
